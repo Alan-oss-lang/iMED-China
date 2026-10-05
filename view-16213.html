@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102f4f"><meta name="description" content="iMED中国智能医学影像团队官方网站"><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="assets/styles.css"><title>医学影像事业部在医学影像分割和树状结构重建领域取得进展｜iMED中国</title></head>
+<body data-base="">
+<a class="skip" href="#main">跳转到主要内容</a>
+<div class="topbar"><div class="container"><span>中国科学院宁波材料技术与工程研究所 · 智能医学影像团队</span><div class="toplinks"><a href="https://www.nimte.ac.cn/" target="_blank" rel="noreferrer">宁波材料所</a><a href="english.html">English</a><a href="contact.html">联系我们</a></div></div></div>
+<header class="site-header"><div class="container header-row"><a class="brand" href="index.html" aria-label="iMED中国首页"><span class="wordmark">i<i>MED</i></span><span class="brand-copy"><strong>智能医学影像团队</strong><small>INTELLIGENT MEDICAL IMAGING · NIMTE</small></span></a><nav class="nav" id="main-nav" aria-label="主导航"><a href="index.html" class="">首页</a><a href="team.html" class="">团队</a><a href="research.html" class="">研究方向</a><a href="publications.html" class="">科研成果</a><a href="news.html" class="active">新闻动态</a><a href="datasets.html" class="">数据资源</a><a href="recruitment.html" class="">加入我们</a></nav><div class="header-actions"><button class="icon-button" data-search-open aria-label="搜索"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button><button class="icon-button menu-button" data-menu aria-expanded="false" aria-controls="main-nav" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<dialog aria-labelledby="search-title" class="search-dialog" id="search-dialog"><div class="search-header"><h2 id="search-title">搜索 iMED</h2><button class="icon-button" data-search-close aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><label class="search-field"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="site-search" aria-label="搜索研究、论文、数据集或成员" type="search" placeholder="搜索研究、论文、数据集或成员" autocomplete="off"></label><p class="search-summary" id="search-summary" aria-live="polite">试试搜索：医学分割、MICCAI、ROSE、赵一天</p><div class="search-results" id="search-results"></div></dialog>
+<main id="main"><section class="page-banner"><div class="container"><div class="breadcrumb"><a href="index.html">首页</a><span>/</span><span>内容详情</span></div><h1>内容详情 <span class="english">iMED ARCHIVE</span></h1><p>科研进展、学术交流与开放资源</p></div></section><section class="content-section"><div class="container article-layout"><article><div class="eyebrow">团队活动</div><h1 class="article-title">医学影像事业部在医学影像分割和树状结构重建领域取得进展</h1><div class="article-meta meta"><time>2019-03-13</time><span>iMED 中国</span></div><div class="article-body">
+<p>    基于U-Net的深度学习分割框架已经被广泛应用于医学图像处理中，但U-Net网络中，连续的池化操作以及带有步幅卷积运算会导致图像中部分细节信息的丢失。树状结构的拓扑建立，对识别和区分单个血管和神经纤维分支至关重要，并能反映出解剖学上不同树状结构的连通性。当两个或者更多的线状结构交叉或者重叠时，现有的拓扑重建方法很难准确的判断连接关系。</p>
+<p>    针对以上问题，近期，慈溪医工所医学影像事业部（iMED）程骏团队和赵一天团队，分别提出了一种基于上下文编码网络(context encoder network，简称CE-Net)的医学影像分割方法和基于优势集的树状结构拓扑重建方法。</p>
+<p>    程骏团队提出了通过一种上下文编码网络(context encoder network，简称CE-Net)，在医学图像分割中获取高阶的语义特征并保留更多细节信息。CE-Net主要包括三个主要组件:特征编码器模块（Encoder）、上下文提取器（context Extractor）和特征解码器模块（Decoder）。实验结果表明：该方法在视盘分割、血管检测、肺分割、细胞轮廓分割、视网膜光学相干断层扫描分割等医学影像处理方面，分割性能均优于原始的U-Net，并取得了目前最优的结果。<span>该医学图像分割算法已被领域顶级期刊</span><em>IEEE Transaction on Medical Imaging(TMI)</em><span>（DOI：10.1109/TMI.2019.2903562）收录。</span></p>
+<p>    赵一天团队提出了一种基于优势集的拓扑重建方法，该方法创新性的结合了优势集和SSIM相似度度量，充分考虑树状结构的对比度及其几何特性，并分别在局部以及全局范围中来表示曲线结构的特征，将拓扑结构的重建问题转化为数学上的聚类问题，采用优势集实现结构相似性的聚类。该方法分别在视网膜血管，脑神经元，以及树根结构中做了验证试验（如图3，4，5），结果表明，重建精度高于领域内现有的相关工作，目前该工作相关内容已被计算机视觉和人工智能的顶级会议International Conference on Computer Vision and Pattern Recognition（CVPR’2019）收录。</p>
+<p><span>     该系列研究工作得到宁波市3315创新团队，国家自然科学基金委，以及浙江省自然科学基金重点项目的支持。</span></p>
+<p>   <img alt="医学影像事业部在医学影像分割和树状结构重建领域取得进展 · 图片" decoding="async" loading="lazy" src="assets/media/570cc2f18ef369f5.webp"/></p>
+<p><span>                  </span><span>   图</span><span>1</span><span>：算法在肺、血管、细胞轮廓上的应用：从上到下依次是原图、</span><span>U-Net</span><span>、</span><span>backbone</span><span>、</span><span>CE-Net</span><span>结果</span></p>
+<p>   <img alt="医学影像事业部在医学影像分割和树状结构重建领域取得进展 · 图片" decoding="async" loading="lazy" src="assets/media/e218ee04f1de1882.webp"/></p>
+<p><span>                                    </span><span>  图</span><span>2</span><span>：算法在视网膜图像上的应用：从左到右依次是原图、</span><span>U-Net</span><span>、</span><span>backbone</span><span>、</span><span>CE-Net</span><span>结果</span></p>
+<p> </p>
+<p>       <img alt="医学影像事业部在医学影像分割和树状结构重建领域取得进展 · 图片" decoding="async" loading="lazy" src="assets/media/031e3916bddf6ff7.webp"/></p>
+<p>    图<span>3</span>：算法在脑神经元上的应用：从左至右依次为原图，金标准，<span>LBP</span>算法的结果，<span>MMNX</span>结果，<span>MFTD</span>结果，所提算法结果<img alt="医学影像事业部在医学影像分割和树状结构重建领域取得进展 · 图片" decoding="async" loading="lazy" src="assets/media/7c31689316fcd243.webp"/></p>
+<p>                              图<span>4</span>：算法在视网膜图像上的应用：从左至右依次为原图，金标准，<span>HER</span>结果，所提算法结果</p>
+<p><img alt="医学影像事业部在医学影像分割和树状结构重建领域取得进展 · 图片" decoding="async" loading="lazy" src="assets/media/4cdfe927a60fdd9d.webp"/></p>
+<p>                             图<span>5</span>：算法在树根结构上的应用：从左至右依次为原图，金标准，<span>HER</span>结果，所提算法结果</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+</div><div class="article-source">来源：<a href="https://imed.nimte.ac.cn/view-16213.html" target="_blank" rel="noopener noreferrer">iMED 原始页面 ↗</a> · 资料整理于 2026-10-05</div></article><aside class="article-aside"><h3>继续探索</h3><a href="news.html">新闻动态 →</a><a href="publications.html">科研成果 →</a><a href="datasets.html">数据与代码 →</a><a href="team.html">团队成员 →</a><a href="events.html">iMED 分享会 →</a></aside></div></section></main><section class="join-banner"><div class="container"><div><h2>和我们一起，让影像看见更多</h2><p>欢迎关注医学影像分析、眼脑联合计算与临床转化的青年研究者加入 iMED。</p></div><a class="button" href="recruitment.html">查看招募信息 <span class="arrow">→</span></a></div></section>
+<footer class="footer"><div class="container footer-grid"><div><a class="wordmark" href="index.html">i<i>MED</i></a><div class="footer-title">智能医学影像团队</div><p>Intelligent Medical Imaging China<br>中国科学院宁波材料技术与工程研究所</p></div><div><h3>快速导航</h3><div class="footer-links"><a href="team.html">团队</a><a href="research.html">研究方向</a><a href="publications.html">科研成果</a><a href="news.html">新闻动态</a><a href="datasets.html">数据资源</a><a href="recruitment.html">加入我们</a><a href="about.html">关于我们</a><a href="contact.html">联系方式</a></div></div><div><h3>联系我们</h3><p>浙江省宁波市慈溪市白沙路街道学林路99号<br>邮编：315300<br>邮箱：<a href="mailto:yuexingyu@nimte.ac.cn">yuexingyu@nimte.ac.cn</a></p></div></div><div class="container footer-bottom"><span>© 2026 iMED China · Intelligent Medical Imaging</span><span><a href="admin/">内容管理</a> · 中国科学院宁波材料所</span></div></footer><button class="backtop" data-backtop aria-label="返回顶部" hidden>↑</button><script src="assets/search-index.js" defer></script><script src="assets/app.js" defer></script></body></html>

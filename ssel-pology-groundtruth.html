@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102f4f"><meta name="description" content="iMED中国智能医学影像团队官方网站"><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="assets/styles.css"><title>VETO｜iMED中国</title></head>
+<body data-base="">
+<a class="skip" href="#main">跳转到主要内容</a>
+<div class="topbar"><div class="container"><span>中国科学院宁波材料技术与工程研究所 · 智能医学影像团队</span><div class="toplinks"><a href="https://www.nimte.ac.cn/" target="_blank" rel="noreferrer">宁波材料所</a><a href="english.html">English</a><a href="contact.html">联系我们</a></div></div></div>
+<header class="site-header"><div class="container header-row"><a class="brand" href="index.html" aria-label="iMED中国首页"><span class="wordmark">i<i>MED</i></span><span class="brand-copy"><strong>智能医学影像团队</strong><small>INTELLIGENT MEDICAL IMAGING · NIMTE</small></span></a><nav class="nav" id="main-nav" aria-label="主导航"><a href="index.html" class="">首页</a><a href="team.html" class="">团队</a><a href="research.html" class="">研究方向</a><a href="publications.html" class="">科研成果</a><a href="news.html" class="">新闻动态</a><a href="datasets.html" class="">数据资源</a><a href="recruitment.html" class="">加入我们</a></nav><div class="header-actions"><button class="icon-button" data-search-open aria-label="搜索"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button><button class="icon-button menu-button" data-menu aria-expanded="false" aria-controls="main-nav" aria-label="打开导航"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button></div></div></header>
+<dialog aria-labelledby="search-title" class="search-dialog" id="search-dialog"><div class="search-header"><h2 id="search-title">搜索 iMED</h2><button class="icon-button" data-search-close aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div><label class="search-field"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input id="site-search" aria-label="搜索研究、论文、数据集或成员" type="search" placeholder="搜索研究、论文、数据集或成员" autocomplete="off"></label><p class="search-summary" id="search-summary" aria-live="polite">试试搜索：医学分割、MICCAI、ROSE、赵一天</p><div class="search-results" id="search-results"></div></dialog>
+<main id="main"><section class="page-banner"><div class="container"><div class="breadcrumb"><a href="index.html">首页</a><span>/</span><span>内容详情</span></div><h1>内容详情 <span class="english">iMED ARCHIVE</span></h1><p>科研进展、学术交流与开放资源</p></div></section><section class="content-section"><div class="container article-layout"><article><div class="eyebrow">团队活动</div><h1 class="article-title">VETO</h1><div class="article-meta meta"><time>2018-09-06</time><span>iMED 中国</span></div><div class="article-body">
+<p><span><span><strong>VETO</strong><strong>：</strong><strong>VE</strong><strong>ssel TOpology groundtruth</strong></span></span></p>
+<p><em>These data set are released for academic research use only.</em></p>
+<p><strong>Download</strong></p>
+<pre>
+<a href="https://doi.org/10.5281/zenodo.12778666" rel="noopener noreferrer" target="_blank">https://doi.org/10.5281/zenodo.12778666</a></pre>
+<p><strong>Dataset Description</strong></p>
+<p>We have labeled the vessel topology on four public-available retinal datasets:</p>
+<ul>
+<li>INSPIRE [1]</li>
+<li>VICAVR [2]</li>
+<li>IOSTAR [3]</li>
+<li>DRIVE [4]</li>
+</ul>
+<p>Two experts were asked to manually label the topological information of the retinal vascular structure by using a graph editing software we developed for this task. Expert one and two independently labeled each vessel segment or centerline for all datasets, based on the types of available manual annotations of the vessel structure. Then the consensus between them was released for public use.</p>
+<p>It is worth noting that the vessel segments or vessel centerlines were used for topology estimation were extracted either by human grader or automatic vessel segmentation method, i.e. the DRIVE and IOSTAR datasets include the manual annotations of retinal vessel for each image, so the topology reconstruction were performed at manual annotated vessel patterns; for VICAVR datasets, the topology estimation were performed at the automatic segmented vessels by using the automated segmentation method [5]; for INSPIRE dataset, the human expert graded the topology at the vessel centerline which were provided by [6].</p>
+<p><img alt="VETO · 图片" decoding="async" loading="lazy" src="assets/media/819f75380c84ffe6.webp"/> </p>
+<p>Figure 1. Examples of vascular topology groundtruth of four datasets.</p>
+<ul>
+<li>M. Niemeijer, X. Xu, A. Dumitrescu, B. van Ginneken, J. Folk, and M. Abràmoff, “Automated measurement of the arteriolar-to-venular width ratio in digital color fundus photographs,” IEEE Trans. Med.Imaging, vol. 30, no. 11, pp. 1941–1950, 2011.</li>
+<li>S. G. Vázquez, B. Cancela, N. Barreira, G. C. de Tuero, M. A. Barceló, and M. Saez, “Improving retinal artery and vein classification by means of a minimal path approach,” Mach. Vis. Appl., vol. 24, no. 5, pp. 919– 930, 2013.</li>
+<li>J. Zhang, B. Dashtbozorg, E. J. Bekkers, J. P. W. Pluim, R. Duits, and B. M. ter Haar Romeny, “Robust retinal vessel segmentation via locally adaptive derivative frames in orientation scores,” IEEE Trans. Med. Imaging, vol. 35, pp. 2631–2644, 2016.</li>
+<li>J. Staal, M. D. Abràmoff, M. Niemeijer, M. A. Viergever, and B. van Ginneken, “Ridge-based vessel segmentation in color images of the retina,” IEEE Transactions on Medical Imaging, vol. 23, pp. 501–509, 2004.</li>
+<li>Y. Zhao, L. Rada, K. Chen, , and Y. Zheng, “Automated vessel segmentation using infinite perimeter active contour model with hybrid region information with application to retinal images,” IEEE Trans. Med. Imaging, vol. 34, no. 9, pp. 1797–1807, 2015.</li>
+<li>R. Estrada, C. Tomasi, S. Schmidler, and S. Farsiu, “Tree topology estimation,” IEEE Trans. Pattern Anal. Mach. Intell., vol. 37, no. 8, pp. 1688–1701, 2015.</li>
+</ul>
+<p><strong>Reference</strong></p>
+<p>Please cite our paper for any kind of usage:</p>
+<ul>
+<li><em>Y Zhao, Ji Xie, H Zhang, Y Zheng, Y Zhao, H Qi, Y Zhao, P Su, J Liu and Y Liu.</em> Retinal Vascular Network Topology Reconstruction and Artery/Vein Classification via Dominant Set Clustering,<em> IEEE Transactions on Medical Imaging</em>, 39(2): 341-356, 2020.  </li>
+<li><em>Y Zhao, J Xie, P Su, Y Zheng, Y Liu, J Cheng, J Liu, Retinal artery and vein classification via dominant sets clustering based vascular topology estimation, MICCAI, 2018, Granada, Spain.</em></li>
+</ul>
+</div><div class="article-source">来源：<a href="https://imed.nimte.ac.cn/ssel-pology-groundtruth.html" target="_blank" rel="noopener noreferrer">iMED 原始页面 ↗</a> · 资料整理于 2026-10-05</div></article><aside class="article-aside"><h3>继续探索</h3><a href="news.html">新闻动态 →</a><a href="publications.html">科研成果 →</a><a href="datasets.html">数据与代码 →</a><a href="team.html">团队成员 →</a><a href="events.html">iMED 分享会 →</a></aside></div></section></main><section class="join-banner"><div class="container"><div><h2>和我们一起，让影像看见更多</h2><p>欢迎关注医学影像分析、眼脑联合计算与临床转化的青年研究者加入 iMED。</p></div><a class="button" href="recruitment.html">查看招募信息 <span class="arrow">→</span></a></div></section>
+<footer class="footer"><div class="container footer-grid"><div><a class="wordmark" href="index.html">i<i>MED</i></a><div class="footer-title">智能医学影像团队</div><p>Intelligent Medical Imaging China<br>中国科学院宁波材料技术与工程研究所</p></div><div><h3>快速导航</h3><div class="footer-links"><a href="team.html">团队</a><a href="research.html">研究方向</a><a href="publications.html">科研成果</a><a href="news.html">新闻动态</a><a href="datasets.html">数据资源</a><a href="recruitment.html">加入我们</a><a href="about.html">关于我们</a><a href="contact.html">联系方式</a></div></div><div><h3>联系我们</h3><p>浙江省宁波市慈溪市白沙路街道学林路99号<br>邮编：315300<br>邮箱：<a href="mailto:yuexingyu@nimte.ac.cn">yuexingyu@nimte.ac.cn</a></p></div></div><div class="container footer-bottom"><span>© 2026 iMED China · Intelligent Medical Imaging</span><span><a href="admin/">内容管理</a> · 中国科学院宁波材料所</span></div></footer><button class="backtop" data-backtop aria-label="返回顶部" hidden>↑</button><script src="assets/search-index.js" defer></script><script src="assets/app.js" defer></script></body></html>
