@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iMED 实验室官网</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background-color: #0056b3;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 50px;
+            position: sticky;
+            top: 0;
+        }
+        .navbar .logo {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-right: 60px;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 18px;
+            font-size: 15px;
+        }
+        .navbar a:hover {
+            opacity: 0.8;
+        }
+
+        /* 主横幅 */
+        .banner {
+            background: linear-gradient(135deg, #0066cc 0%, #0099cc 100%);
+            color: white;
+            padding: 80px 50px;
+            text-align: center;
+        }
+        .banner h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        .banner p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* 内容区域 */
+        .container {
+            max-width: 1100px;
+            margin: 60px auto;
+            padding: 0 30px;
+        }
+        .section-title {
+            font-size: 26px;
+            color: #0056b3;
+            margin-bottom: 30px;
+            border-left: 4px solid #0056b3;
+            padding-left: 15px;
+        }
+
+        /* 卡片布局 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            transition: 0.3s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .card h3 {
+            color: #0056b3;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* 页脚 */
+        .footer {
+            background-color: #f5f7fa;
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航 -->
+    <div class="navbar">
+        <div class="logo">iMED Lab</div>
+        <a href="#">首页</a>
+        <a href="#">团队成员</a>
+        <a href="#">研究方向</a>
+        <a href="#">论文发表</a>
+        <a href="#">新闻动态</a>
+    </div>
+
+    <!-- 横幅 -->
+    <div class="banner">
+        <h1>智能医学工程实验室</h1>
+        <p>致力于医学影像、智能感知、生物医学工程等前沿方向研究，推动医工交叉创新与成果转化。</p>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="container">
+        <h2 class="section-title">研究方向</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>医学影像分析</h3>
+                <p>基于深度学习的医学影像分割、检测与辅助诊断系统研发，覆盖CT、MRI、病理图像等多模态数据。</p>
+            </div>
+            <div class="card">
+                <h3>智能传感技术</h3>
+                <p>新型生物传感器、可穿戴医疗设备研发，实现生理信号的实时采集与健康状态智能评估。</p>
+            </div>
+            <div class="card">
+                <h3>医疗机器人</h3>
+                <p>手术机器人、康复机器人的控制算法与系统集成，提升临床诊疗的精准度与自动化水平。</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">团队介绍</h2>
+        <div class="card-grid">
+            <div class="card">
+                <h3>教授 3 人</h3>
+                <p>国家级人才领衔，深耕医工交叉领域十余年，承担多项国家级重点科研项目。</p>
+            </div>
+            <div class="card">
+                <h3>副教授 5 人</h3>
+                <p>中青年学术骨干，覆盖计算机、自动化、生物医学工程等多学科背景。</p>
+            </div>
+            <div class="card">
+                <h3>研究生 30+</h3>
+                <p>硕博研究生团队，活跃于国际顶级期刊与会议，持续产出高水平研究成果。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        © 2025 iMED Laboratory. All Rights Reserved.
+    </div>
+
+</body>
+</html>
