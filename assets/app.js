@@ -21,8 +21,20 @@
   document.addEventListener('click', e => { if (!e.target.closest('.site-header')) closeMenu(); });
   window.matchMedia('(min-width:1001px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
   const topButton = $('[data-backtop]');
-  const updateTop = () => { if (topButton) topButton.hidden = window.scrollY < 500; };
-  window.addEventListener('scroll', updateTop, { passive: true });
+  const header = $('.site-header');
+  let scrollFrame;
+  const updateTop = () => {
+    if (topButton) topButton.hidden = window.scrollY < 500;
+    if (header) {
+      const distance = document.documentElement.scrollHeight - window.innerHeight;
+      header.style.setProperty('--reading-progress', distance > 0 ? Math.min(1, Math.max(0, window.scrollY / distance)) : 0);
+      header.classList.toggle('is-scrolled', window.scrollY > 12);
+    }
+    scrollFrame = null;
+  };
+  const scheduleScroll = () => { if (scrollFrame == null) scrollFrame = requestAnimationFrame(updateTop); };
+  window.addEventListener('scroll', scheduleScroll, { passive: true });
+  window.addEventListener('resize', scheduleScroll, { passive: true });
   updateTop();
   topButton?.addEventListener('click', () => window.scrollTo({top:0, behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'}));
 
@@ -106,5 +118,48 @@
     const initialButton = $$('[data-category]',controls || document).find(b=>b.dataset.category===initial);
     if(initialButton) {category=initial;$$('[data-category]',controls).forEach(b=>b.setAttribute('aria-pressed',String(b===initialButton)));}
     render();
+  }
+
+  // Progressive enhancement: content stays readable without JS or animation support.
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if ('IntersectionObserver' in window) {
+    const hero = $('.hero');
+    if (hero) {
+      let heroVisible = true;
+      const pauseHero = () => hero.toggleAttribute('data-motion-paused', !heroVisible || document.hidden);
+      const heroObserver = new IntersectionObserver(entries => {
+        heroVisible = entries[0].isIntersecting;
+        pauseHero();
+      });
+      heroObserver.observe(hero);
+      document.addEventListener('visibilitychange', pauseHero);
+      pauseHero();
+    }
+    if (typeof Element.prototype.animate === 'function') {
+      const animations = new Map();
+      const cancelAnimations = () => { animations.forEach(animation => animation.cancel()); animations.clear(); };
+      const reveal = new IntersectionObserver(entries => {
+        let stagger = 0;
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const element = entry.target;
+          reveal.unobserve(element);
+          if (motionPreference.matches || document.hidden || element.contains(document.activeElement)) return;
+          const animation = element.animate([
+            { opacity: 0, translate: '0 20px' },
+            { opacity: 1, translate: '0 0' },
+          ], { duration: 580, delay: Math.min(stagger++ * 55, 165), easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          animations.set(element, animation);
+          animation.onfinish = animation.oncancel = () => animations.delete(element);
+        });
+      }, { threshold: 0.08 });
+      $$('main .section-heading, main .feature-news, main .research-card, main .pub-card, main .person-card, main .dataset-card, main .publication-item, main .news-row, main .team-preview-photo, main .team-preview-text, main .resources-strip > div:first-child, main .resource-tile, main .intro-grid > div, main .research-detail, main .contact-layout > div, .join-banner .container').forEach(element => reveal.observe(element));
+      motionPreference.addEventListener('change', event => { if (event.matches) cancelAnimations(); });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimations(); });
+      window.addEventListener('beforeprint', cancelAnimations);
+      document.addEventListener('focusin', event => {
+        animations.forEach((animation, element) => { if (element.contains(event.target)) animation.cancel(); });
+      });
+    }
   }
 })();
