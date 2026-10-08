@@ -1,0 +1,12 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname, basename, resolve } from 'node:path';
+import { hashPassword } from '../server/auth.mjs';
+const directory = mkdtempSync(join(tmpdir(), 'imed-browser-'));
+process.env.HOST = '127.0.0.1'; process.env.PORT = '8766';
+process.env.IMED_ADMIN_USERNAME = 'browser-test';
+process.env.IMED_ADMIN_PASSWORD_HASH = hashPassword('Browser-test-password-123');
+process.env.IMED_SESSION_SECRET = 'browser-test-only-'.repeat(4);
+process.env.IMED_DATA_FILE = join(directory, 'imed.sqlite');
+process.on('exit', () => { if (dirname(resolve(directory)) === resolve(tmpdir()) && basename(directory).startsWith('imed-browser-')) rmSync(directory, { recursive: true, force: true }); });
+await import('../server/local.mjs');

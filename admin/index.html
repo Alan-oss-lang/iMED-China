@@ -1,12 +1,75 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>内容管理后台</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+  <title>内容管理｜iMED 中国</title>
+  <script src="/admin/admin.js" defer></script>
 </head>
-<body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<body class="admin-body">
+  <header class="admin-header">
+    <a class="brand" href="/"><span class="wordmark">i<i>MED</i></span><span class="brand-copy"><strong>网站内容管理</strong><small>iMED CHINA</small></span></a>
+    <div class="header-tools"><a href="/" target="_blank" rel="noopener">查看网站 ↗</a><span id="account"></span><button id="logout" class="small-button" hidden>退出登录</button></div>
+  </header>
+  <p id="notice" class="admin-notice" role="status" aria-live="polite" hidden></p>
+  <main id="login-panel" class="login-panel">
+    <div class="eyebrow">CONTENT MANAGEMENT</div>
+    <h1 id="login-title">管理网站内容</h1>
+    <p id="login-description">登录后维护动态、成员、成果和开放资源。</p>
+    <form id="login-form">
+      <label id="username-label">账号<input id="username" name="username" autocomplete="username" required maxlength="200"></label>
+      <label>密码<input id="password" name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+      <label id="confirm-label" hidden>再次输入密码<input id="confirm-password" type="password" autocomplete="new-password" maxlength="200"></label>
+      <button class="button" id="login-submit" type="submit" disabled>正在连接…</button>
+      <button id="recover" class="text-button" type="button" hidden>忘记密码</button>
+    </form>
+    <p class="form-note" id="login-note"></p>
+  </main>
+  <div class="admin-shell" id="workspace" hidden>
+    <nav class="admin-nav" aria-label="内容栏目">
+      <button data-section="dashboard" aria-current="page">概览</button>
+      <button data-section="news">新闻与活动</button>
+      <button data-section="members">团队成员</button>
+      <button data-section="publications">科研成果</button>
+      <button data-section="resources">数据资源</button>
+      <button data-section="pages">页面内容</button>
+      <button id="export" class="backup-button">下载内容备份</button>
+    </nav>
+    <main class="admin-main">
+      <div class="admin-heading"><div><div class="eyebrow">iMED CHINA</div><h1 id="section-title">概览</h1></div><button id="add" class="button" hidden>新增内容</button></div>
+      <section id="dashboard"></section>
+      <section id="listing" hidden>
+        <div class="admin-filters"><input id="filter-query" type="search" placeholder="搜索标题或姓名" aria-label="搜索内容"><select id="filter-status" aria-label="按发布状态筛选"><option value="">全部状态</option><option value="published">已发布</option><option value="draft">草稿</option></select><button id="refresh" class="small-button">刷新</button></div>
+        <p id="list-count" class="muted" aria-live="polite"></p>
+        <div class="table-scroll"><table class="admin-table"><thead><tr><th>内容</th><th>状态</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="admin-pagination"><button id="previous" class="small-button">上一页</button><span id="page-label"></span><button id="next" class="small-button">下一页</button></div>
+      </section>
+    </main>
+  </div>
+  <dialog id="editor-dialog" class="editor-dialog" aria-labelledby="editor-title">
+    <form id="editor-form">
+      <div class="editor-heading"><h2 id="editor-title">编辑内容</h2><button id="close-editor" type="button" class="small-button" aria-label="关闭编辑窗口">关闭</button></div>
+      <div id="editor-fields" class="editor-fields"></div>
+      <section id="rich-section" hidden>
+        <label id="rich-label">正文</label>
+        <div class="rich-toolbar" role="toolbar" aria-label="正文格式">
+          <button type="button" data-command="bold">加粗</button><button type="button" data-command="italic">斜体</button>
+          <button type="button" data-format="h2">标题</button><button type="button" data-format="p">段落</button>
+          <button type="button" data-command="insertUnorderedList">列表</button><button type="button" id="insert-link">链接</button>
+          <button type="button" id="insert-image">插入图片</button><button type="button" data-command="undo">撤销</button>
+        </div>
+        <div id="rich-editor" class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="rich-label"></div>
+        <p class="form-note">可直接编辑文字，使用上方按钮排版。粘贴会保留文字；图片使用“插入图片”上传。首页中的自动内容区会同步新闻、成果和资源。</p>
+      </section>
+      <div class="editor-footer"><label>发布状态<select name="status" id="editor-status"><option value="draft">草稿（前台不显示）</option><option value="published">发布到网站</option></select></label><div><button id="preview" type="button" class="small-button">预览正文</button><button id="save" type="submit" class="button">保存</button></div></div>
+      <p id="editor-error" class="editor-error" role="alert" hidden></p>
+    </form>
+  </dialog>
+  <dialog id="preview-dialog" class="preview-dialog" aria-labelledby="preview-title"><div class="editor-heading"><h2 id="preview-title">正文预览</h2><button id="close-preview" class="small-button">关闭</button></div><iframe id="preview-frame" title="正文预览" sandbox></iframe></dialog>
+  <input id="image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
 </body>
 </html>

@@ -1,5 +1,10 @@
 (() => {
   'use strict';
+  window.addEventListener('hashchange', () => { if (/(?:invite_token|recovery_token|confirmation_token)=/.test(location.hash)) location.replace((document.body.dataset.base || '/') + 'admin/' + location.hash); });
+  if (/(?:invite_token|recovery_token|confirmation_token)=/.test(location.hash)) {
+    location.replace((document.body.dataset.base || '/') + 'admin/' + location.hash);
+    return;
+  }
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const base = document.body.dataset.base || '';
@@ -21,24 +26,45 @@
   updateTop();
   topButton?.addEventListener('click', () => window.scrollTo({top:0, behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'}));
 
-  // Local search uses a generated index, including when opened directly as a file.
+  // Search the published backend content; the original archive remains usable as local files.
   const dialog = $('#search-dialog');
   const input = $('#site-search');
   const results = $('#search-results');
   const summary = $('#search-summary');
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const renderSearch = () => {
+  let searchSequence = 0, searchTimer, searchController;
+  const renderSearch = async () => {
+    const sequence = ++searchSequence;
+    searchController?.abort();
     const query = input.value.trim().toLowerCase();
     if (!query) { results.innerHTML = ''; summary.textContent = '试试搜索：医学分割、MICCAI、ROSE、赵一天'; return; }
-    const terms = query.split(/\s+/);
-    const found = (window.IMED_SEARCH || []).filter(item => terms.every(term => (item.title + ' ' + item.text).toLowerCase().includes(term))).sort((a,b) => Number(b.title.toLowerCase().includes(query))-Number(a.title.toLowerCase().includes(query)));
-    summary.textContent = found.length ? `找到 ${found.length} 条相关内容${found.length > 40 ? '，显示前 40 条，请增加关键词缩小范围' : ''}` : '没有找到相关内容，请尝试其他关键词。';
+    if (query.length > 200) { summary.textContent = '搜索关键词请控制在 200 个字符以内。'; results.innerHTML = ''; return; }
+    let found, total;
+    if (location.protocol === 'file:') {
+      const terms = query.split(/\s+/);
+      found = (window.IMED_SEARCH || []).filter(item => terms.every(term => (item.title + ' ' + item.text).toLowerCase().includes(term))).sort((a,b) => Number(b.title.toLowerCase().includes(query))-Number(a.title.toLowerCase().includes(query)));
+      total = found.length;
+    } else {
+      searchController = new AbortController();
+      summary.textContent = '正在搜索…';
+      try {
+        const response = await fetch(`${base}api/search?q=${encodeURIComponent(query)}`, { signal: searchController.signal });
+        if (!response.ok) throw new Error('Search unavailable');
+        const data = await response.json();
+        found = data.items; total = data.total;
+      } catch (error) {
+        if (sequence !== searchSequence || error.name === 'AbortError') return;
+        summary.textContent = '搜索暂时不可用，请稍后重试。'; results.innerHTML = ''; return;
+      }
+    }
+    if (sequence !== searchSequence) return;
+    summary.textContent = total ? `找到 ${total} 条相关内容${total > 40 ? '，显示前 40 条，请增加关键词缩小范围' : ''}` : '没有找到相关内容，请尝试其他关键词。';
     results.innerHTML = found.slice(0,40).map(item => `<a class="search-result" href="${base}${esc(item.url)}"><h3>${esc(item.title)}</h3><p>${esc(item.category)}${item.date ? ' · ' + esc(item.date) : ''}</p></a>`).join('');
   };
   $$('[data-search-open]').forEach(button => button.addEventListener('click', () => { closeMenu(); dialog.showModal(); input.focus(); renderSearch(); }));
   $('[data-search-close]')?.addEventListener('click', () => dialog.close());
   dialog?.addEventListener('click', e => { if (e.target === dialog) { const r=dialog.getBoundingClientRect(); if (e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) dialog.close(); } });
-  input?.addEventListener('input', renderSearch);
+  input?.addEventListener('input', () => { clearTimeout(searchTimer); searchSequence++; searchController?.abort(); searchTimer = setTimeout(renderSearch, 200); });
 
   $$('[data-home-category]').forEach(button => button.addEventListener('click', () => {
     $$('[data-home-category]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
@@ -46,6 +72,7 @@
     let shown = 0;
     $$('[data-home-news]').forEach(row => { const visible = (category === '全部' || row.dataset.category === category) && shown < 4; row.hidden = !visible; if (visible) shown++; });
   }));
+  $('[data-home-category="全部"]')?.click();
 
   // Shared category, keyword, year and pagination controls on the news/team pages.
   const collection = $('[data-collection]');
