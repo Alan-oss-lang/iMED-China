@@ -51,7 +51,7 @@ setup 会询问管理员用户名、生成随机密码并显示一次。请保�
 代码推送到已关联仓库会触发 Netlify 构建。是否发布成功，以部署日志与线上健康接口为准。
 
 1. 将更新后的项目文件同步到 Netlify 已关联的 GitHub 仓库根目录，包括 package.json、pnpm-lock.yaml、pnpm-workspace.yaml、netlify.toml、server/、content/、netlify/、scripts/、admin/、assets/。不要上传 node_modules、var 或 .env.local。
-2. Netlify 构建命令为 **npm run build**，发布目录为 **dist**，函数目录为 **netlify/functions**；netlify.toml 已配置，Node 版本为 24。
+2. Netlify 构建命令为 **npm run build**，发布目录为 **dist**，函数目录为 **build-functions**；netlify.toml 已配置，构建 Node 版本为 24。构建会先打包 netlify/functions 中的函数源码和依赖，避免运行环境的 CommonJS／ESM 兼容差异。
 3. 保持现有 Netlify Identity 开启，建议继续使用“仅邀请”注册。现有账号可以继续使用。
 4. 在 Netlify 为至少一个 Identity 账号设置 **admin** 或 **editor** 角色；也可以在 Netlify 环境变量中设置 IMED_ADMIN_EMAILS 为允许维护内容的邮箱，多个邮箱用逗号分隔。变量需包含 Functions 作用范围，更改后重新部署。只有登录并通过权限校验的账号能编辑内容。
 5. 建议将 IMED_IDENTITY_URL 设为 https://sparkling-souffle-073162.netlify.app（Functions 作用范围），尤其使用预览部署或自定义域名时。未设置时使用 Netlify 的 URL 环境变量。

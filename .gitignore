@@ -1,5 +1,6 @@
 node_modules/
 dist/
+build-functions/
 .netlify/
 .env
 .env.local
