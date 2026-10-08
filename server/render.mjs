@@ -26,6 +26,9 @@ function homeBody(html, state) {
 export function renderPage(url, state) {
   let slug;
   try { slug = decodeURIComponent(url.pathname).replace(/^\//, '') || 'index.html'; } catch { return missing(); }
+  // Netlify and older shared links can omit .html; keep assets relative to the site root.
+  if (/^[a-zA-Z0-9_-]+(?:\.html)?\/$/.test(slug)) return { status: 302, location: '/' + slug.slice(0, -1) + url.search };
+  if (/^[a-zA-Z0-9_-]+$/.test(slug)) slug += '.html';
   if (templates.aliases[slug]) return { status: 302, location: '/' + templates.aliases[slug] };
   const id = url.searchParams.get('id');
   const article = slug === 'article.html' && id ? state.collections.news[id] : Object.values(state.collections.news).find(n => n.url === slug);

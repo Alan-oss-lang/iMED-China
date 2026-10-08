@@ -39,8 +39,12 @@ test('迁移保留现有内容，所有公开页面和历史别名可解析', ()
   for (const slug of [...Object.keys(templates.lists), ...Object.values(seed.collections.pages).map(p => p.slug), ...Object.values(seed.collections.news).map(p => p.url)]) {
     const page = renderPage(new URL(origin + '/' + slug), seed);
     assert.equal(page.status, 200, slug); assert.ok(page.html.includes('<main id="main">'), slug);
+    assert.deepEqual(renderPage(new URL(origin + '/' + slug.replace(/\.html$/, '')), seed), page, slug + ' without extension');
   }
-  for (const [slug, target] of Object.entries(templates.aliases)) assert.equal(renderPage(new URL(origin + '/' + slug), seed).location, '/' + target);
+  for (const [slug, target] of Object.entries(templates.aliases)) {
+    assert.equal(renderPage(new URL(origin + '/' + slug), seed).location, '/' + target);
+    assert.equal(renderPage(new URL(origin + '/' + slug.replace(/\.html$/, '')), seed).location, '/' + target);
+  }
   const home = load(renderPage(new URL(origin), seed).html);
   assert.equal(home('[data-imed-slot]').length, 0); assert.equal(home('.pub-card').length, 3);
   assert.equal(home('.news-row').length, 30); assert.equal(home('script:not([src])').length, 0);
@@ -82,24 +86,30 @@ test('新闻草稿、发布、年份筛选、搜索、冲突检测、撤下及�
   const create = await f.request('/api/admin/news', 'POST', newsInput); assert.equal(create.status, 201);
   let item = (await create.json()).item;
   assert.equal((await f.request('/' + item.url)).status, 404);
+  assert.equal((await f.request('/' + item.url.replace('article.html', 'article'))).status, 404);
   assert.equal((await f.request('/api/content/news/' + item.id)).status, 404);
   assert.equal((await (await f.request('/api/search?q=' + encodeURIComponent(item.title))).json()).total, 0);
   assert.equal((await f.request('/api/admin/news/' + item.id, 'PUT', { ...item, status: 'published' })).status, 428);
   const publish = await f.request('/api/admin/news/' + item.id, 'PUT', { ...item, status: 'published' }, { headers: { 'If-Match': '"1"' } }); assert.equal(publish.status, 200);
   item = (await publish.json()).item;
   const page = await f.request('/' + item.url); assert.equal(page.status, 200); assert.ok((await page.text()).includes('新正文'));
+  const shortPage = await f.request('/' + item.url.replace('article.html', 'article')); assert.equal(shortPage.status, 200); assert.ok((await shortPage.text()).includes('新正文'));
+  const slashPage = await f.request('/' + item.url.replace('article.html', 'article/')); assert.equal(slashPage.status, 302); assert.equal(slashPage.headers.get('location'), '/' + item.url.replace('article.html', 'article'));
+  const slashHtmlPage = await f.request('/' + item.url.replace('article.html', 'article.html/')); assert.equal(slashHtmlPage.status, 302); assert.equal(slashHtmlPage.headers.get('location'), '/' + item.url);
   const list = await (await f.request('/news.html')).text(); assert.ok(list.includes('独立测试新闻 $&amp;')); assert.ok(list.includes('<option>2027</option>'));
   const home = await (await f.request('/')).text(); assert.ok(home.includes('独立测试新闻 $&amp;'));
   const search = await (await f.request('/api/search?q=' + encodeURIComponent('独立测试新闻'))).json(); assert.equal(search.total, 1);
   assert.equal((await f.request('/api/admin/news/' + item.id, 'PUT', item, { headers: { 'If-Match': '"1"' } })).status, 409);
   const unpublish = await f.request('/api/admin/news/' + item.id, 'PUT', { ...item, status: 'draft' }, { headers: { 'If-Match': '"2"' } }); assert.equal(unpublish.status, 200);
   assert.equal((await f.request('/' + item.url)).status, 404);
+  assert.equal((await f.request('/' + item.url.replace('article.html', 'article'))).status, 404);
   assert.equal((await f.request('/api/admin/news/' + item.id, 'DELETE', undefined, { headers: { 'If-Match': '"3"' } })).status, 200);
   assert.equal((await f.request('/api/admin/news/' + item.id)).status, 404);
   // A legacy URL must also stop serving its archived body, including after reopening the database.
   const legacy = seed.collections.news['view-34079'];
   assert.equal((await f.request('/api/admin/news/' + legacy.id, 'DELETE', undefined, { headers: { 'If-Match': '"1"' } })).status, 200);
   const removed = await f.request('/view-34079.html'); assert.equal(removed.status, 404); assert.ok(!(await removed.text()).includes(legacy.title));
+  const shortRemoved = await f.request('/view-34079'); assert.equal(shortRemoved.status, 404); assert.ok(!(await shortRemoved.text()).includes(legacy.title));
   const second = await createLocalStorage(join(f.directory, 'db.sqlite')); assert.equal((await second.read()).state.collections.news[legacy.id], undefined); second.close();
   assert.equal((await (await f.request('/api/admin/export')).json()).history.length, 5);
 });
