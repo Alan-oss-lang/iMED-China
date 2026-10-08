@@ -64,6 +64,40 @@ test('本地登录、权限、跨站请求与登录限流', async t => {
   const logout = await f.request('/api/auth/logout', 'POST'); assert.match(logout.headers.get('set-cookie'), /Max-Age=0/);
 });
 
+test('成员详情使用当前成员资料和原始介绍，旧链接与发布状态保持有效', () => {
+  const url = new URL(origin + '/view-13115.html');
+  const html = renderPage(url, seed).html, $ = load(html);
+  assert.equal($('main h1').length, 1); assert.equal($('.profile-identity h1').text(), '赵一天');
+  assert.equal($('.profile-portrait img').attr('src'), seed.collections.members['member-1'].image);
+  assert.ok($('#profile-about').text().includes('博士，研究员、博导'));
+  assert.ok($('#profile-english [lang="en"]').text().includes('He finished his PhD degree'));
+  assert.equal($('.nav a[aria-current="page"]').attr('href'), 'team.html');
+  assert.equal($('.article-meta, .article-aside').length, 0);
+  assert.ok($('.profile-contact-link[href="mailto:yitian.zhao@nimte.ac.cn"]').length);
+  assert.ok($('.profile-contact-link').toArray().some(node => $(node).attr('href').includes('scholar.google')));
+  assert.ok($('.profile-source').text().includes('资料整理于 2026-10-05'));
+  assert.equal(renderPage(new URL(origin + '/view-13115'), seed).html, html);
+  for (const member of Object.values(seed.collections.members).filter(member => member.link && !member.link.startsWith('http'))) {
+    const profile = load(renderPage(new URL(origin + '/' + member.link), seed).html);
+    assert.equal(profile('.profile-identity h1').text(), member.title, member.title);
+    assert.ok(profile('.profile-section').length, member.title);
+  }
+  const state = structuredClone(seed), member = state.collections.members['member-1'];
+  Object.assign(member, { title: '更新姓名 <&>', englishName: 'Updated Name', role: '更新职务', image: '/api/media/new-photo', link: '/view-13115' });
+  const updated = load(renderPage(url, state).html);
+  assert.equal(updated('.profile-identity h1').text(), member.title);
+  assert.equal(updated('.profile-role').text(), member.role);
+  assert.equal(updated('.profile-portrait img').attr('src'), member.image);
+  member.image = '';
+  assert.equal(load(renderPage(url, state).html)('.profile-monogram').text(), '更');
+  member.status = 'draft';
+  assert.equal(load(renderPage(url, state).html)('.profile-hero').length, 0);
+  member.status = 'published'; member.link = 'https://external.example/view-13115.html';
+  assert.equal(load(renderPage(url, state).html)('.profile-hero').length, 0);
+  state.collections.pages['view-13115'].status = 'draft';
+  assert.equal(renderPage(url, state).status, 404);
+});
+
 test('Identity 必须由登录服务验证，并检查可信角色／邮箱白名单', async () => {
   let calls = 0;
   const identity = { id: 'trusted-user', email: 'owner@example.test', app_metadata: { roles: ['admin'] } };

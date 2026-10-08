@@ -153,7 +153,7 @@
           animation.onfinish = animation.oncancel = () => animations.delete(element);
         });
       }, { threshold: 0.08 });
-      $$('main .section-heading, main .feature-news, main .research-card, main .pub-card, main .person-card, main .dataset-card, main .publication-item, main .news-row, main .team-preview-photo, main .team-preview-text, main .resources-strip > div:first-child, main .resource-tile, main .intro-grid > div, main .research-detail, main .contact-layout > div, .join-banner .container').forEach(element => reveal.observe(element));
+      $$('main .section-heading, main .feature-news, main .research-card, main .pub-card, main .person-card, main .dataset-card, main .publication-item, main .news-row, main .team-preview-photo, main .team-preview-text, main .resources-strip > div:first-child, main .resource-tile, main .intro-grid > div, main .research-detail, main .contact-layout > div, main .profile-section, .join-banner .container').forEach(element => reveal.observe(element));
       motionPreference.addEventListener('change', event => { if (event.matches) cancelAnimations(); });
       document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimations(); });
       window.addEventListener('beforeprint', cancelAnimations);

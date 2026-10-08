@@ -121,3 +121,24 @@ test('Identity 的账号登录和邀请激活使用正确的 GoTrue 请求格式
   await expect(page.locator('#workspace')).toBeVisible();
   const invitation = captured.find(r => r.url.endsWith('/verify')); expect(JSON.parse(invitation.body)).toEqual({ type: 'signup', token: 'invite-test', password: 'invited-password-123' });
 });
+
+test('成员详情显示照片、中英文介绍和联系入口，并适配手机', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/team');
+  await page.locator('.person-card').filter({ hasText: '赵一天' }).getByRole('link', { name: '个人介绍' }).click();
+  await expect(page.locator('main h1')).toHaveText('赵一天');
+  await expect(page.locator('.profile-role')).toContainText('团队负责人');
+  await expect.poll(() => page.locator('.profile-portrait img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+  await expect(page.locator('#profile-about')).toContainText('眼、脑、血管疾病');
+  await expect(page.locator('#profile-english')).toContainText('University of Liverpool');
+  await expect(page.locator('.profile-contact-link[href="mailto:yitian.zhao@nimte.ac.cn"]')).toBeVisible();
+  await mkdir('var/screenshots', { recursive: true });
+  await page.screenshot({ path: 'var/screenshots/profile-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: 'var/screenshots/profile-mobile.png', fullPage: true });
+  await page.locator('.profile-section-nav').getByRole('link', { name: 'English biography' }).click();
+  await expect(page.locator('#profile-english-title')).toBeInViewport();
+  await page.setViewportSize({ width: 360, height: 800 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

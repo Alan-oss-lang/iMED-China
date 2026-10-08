@@ -1,5 +1,6 @@
 import templates from '../content/templates.json' with { type: 'json' };
 import { escape as e, visible, plainText } from './content.mjs';
+import { linkedMember, renderProfile } from './profile.mjs';
 
 export const newsRow = (r, home = false) => `<a class="news-row" data-item${home ? ' data-home-news' : ''} data-category="${e(r.category)}" data-year="${e(r.date.slice(0, 4))}" href="${e(r.url)}"><span class="news-date"><strong>${e(r.date.slice(8))}</strong><small>${e(r.date.slice(0, 7).replace('-', '.'))}</small></span><span><span class="tag">${e(r.category)}</span><h3>${e(r.title)}</h3></span><span class="arrow">→</span></a>`;
 const memberCard = r => `<article class="person-card" data-item data-category="${e(r.category)}"><div class="person-photo">${r.image ? `<img src="${e(r.image)}" alt="${e(r.title)}" loading="lazy">` : `<div class="person-placeholder">${e(r.title.slice(0, 1))}</div>`}</div><div class="person-info"><small>${e(r.englishName)}</small><h3>${e(r.title)}</h3><p>${e(r.role)}</p>${r.link ? `<a href="${e(r.link)}">个人介绍 →</a>` : ''}</div></article>`;
@@ -7,8 +8,12 @@ const publicationCard = r => `<article class="publication-item" data-item data-y
 const resourceCard = r => `<article class="dataset-card" id="${e(r.anchor)}"><div class="dataset-top"><h2>${e(r.title)}</h2><span class="pill">${e(r.availability)}</span></div><h3>${e(r.subtitle)}</h3><p>${e(r.description)}</p>${r.link ? `<a class="text-link" href="${e(r.link)}">数据说明与使用方式 →</a>` : ''}</article>`;
 const banner = (title, desc = '') => `<section class="page-banner"><div class="container"><div class="breadcrumb"><a href="index.html">首页</a><span>/</span><span>${e(title)}</span></div><h1>${e(title)}</h1>${desc ? `<p>${e(desc)}</p>` : ''}</div></section>`;
 function frame(main, title, description = '', language = 'zh-CN', active = '') {
-  const html = templates.frame.replace('{{MAIN}}', () => main).replace(/<title>[\s\S]*?<\/title>/, () => `<title>${e(title)}｜iMED中国</title>`).replace(/<meta name="description"[^>]*>/, () => `<meta name="description" content="${e(description || title)}">`).replace('<html lang="zh-CN">', `<html lang="${language}">`).replace(/<a href="([^"]+)" class="active">/g, '<a href="$1" class="">');
-  return active ? html.replace(`<a href="${active}" class="">`, `<a href="${active}" class="active" aria-current="page">`) : html;
+  const html = templates.frame.replace('{{MAIN}}', () => main).replace(/<title>[\s\S]*?<\/title>/, () => `<title>${e(title)}｜iMED中国</title>`).replace(/<meta name="description"[^>]*>/, () => `<meta name="description" content="${e(description || title)}">`).replace('<html lang="zh-CN">', `<html lang="${language}">`);
+  return html.replace(/<nav\b[^>]*\bid="main-nav"[^>]*>[\s\S]*?<\/nav>/, navigation => navigation.replace(/<a\b[^>]*>/g, tag => {
+    const selected = tag.match(/\bhref="([^"]+)"/)?.[1] === active;
+    const updated = tag.replace(/\bclass="([^"]*)"/, (_, classes) => `class="${[...classes.split(/\s+/).filter(c => c && c !== 'active'), ...(selected ? ['active'] : [])].join(' ')}"`).replace(/\saria-current="[^"]*"/, '');
+    return selected ? updated.replace(/>$/, ' aria-current="page">') : updated;
+  }));
 }
 const updateYears = (html, years) => html.replace(/<select\b[^>]*data-year[^>]*>[\s\S]*?<\/select>/, () => `<select data-year aria-label="选择年份"><option value="">全部年份</option>${[...new Set(years)].sort().reverse().map(y => `<option>${e(y)}</option>`).join('')}</select>`);
 function homeBody(html, state) {
@@ -55,6 +60,8 @@ export function renderPage(url, state) {
   }
   const page = Object.values(state.collections.pages).find(p => p.slug === slug);
   if (page?.status === 'published') {
+    const member = linkedMember(url, slug, state);
+    if (member) return { status: 200, html: frame(renderProfile(page, member), member.title + ' · 团队成员', page.description, 'zh-CN', 'team.html') };
     const body = slug === 'index.html' ? homeBody(page.bodyHtml, state) : page.bodyHtml;
     const english = page.bannerHtml?.match(/<span class="english">[\s\S]*?<\/span>/)?.[0] || '';
     const pageBanner = page.bannerHtml?.replace(/<h1>[\s\S]*?<\/h1>/, () => `<h1>${e(page.title)} ${english}</h1>`);
