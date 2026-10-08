@@ -46,7 +46,7 @@ test('浏览器中完成新闻新增、预览、发布、前台搜索、撤下�
   await front.close(); expect(errors).toEqual([]);
 });
 
-test('成员照片上传，四种内容编辑器及首页可视编辑正常运行', async ({ page }) => {
+test('成员照片上传、保存已有成员及四种编辑器正常运行', async ({ page, context }) => {
   await login(page);
   await page.getByRole('button', { name: '团队成员', exact: true }).click();
   await page.getByRole('button', { name: '新增内容', exact: true }).click();
@@ -58,7 +58,26 @@ test('成员照片上传，四种内容编辑器及首页可视编辑正常运�
   await page.locator('#editor-status').selectOption('published'); await page.locator('#save').click();
   await expect(page.locator('#editor-dialog')).not.toBeVisible();
   await page.locator('#filter-query').fill('浏览器测试成员'); await expect(page.locator('#list-count')).toHaveText('共 1 项内容');
+  const writes = [];
+  // Reproduce the edge dropping standard conditional request headers.
+  await page.route('**/api/admin/members/*', async route => {
+    const request = route.request(), headers = await request.allHeaders();
+    if (['PUT', 'DELETE'].includes(request.method())) {
+      writes.push({ method: request.method(), revision: headers['x-imed-revision'] });
+      delete headers['if-match'];
+    }
+    await route.continue({ headers });
+  });
+  await page.getByRole('button', { name: '编辑', exact: true }).click();
+  await page.locator('#field-role').fill('已保存的成员介绍');
+  await page.locator('#field-category').selectOption('在读学生');
+  await page.locator('#save').click();
+  await expect(page.locator('#editor-dialog')).not.toBeVisible();
+  const front = await context.newPage(); await front.goto('/team');
+  await expect(front.locator('.person-card').filter({ hasText: '浏览器测试成员' })).toContainText('已保存的成员介绍');
   page.once('dialog', d => d.accept()); await page.getByRole('button', { name: '删除', exact: true }).click(); await expect(page.locator('#list-count')).toHaveText('共 0 项内容');
+  expect(writes).toEqual([{ method: 'PUT', revision: '1' }, { method: 'DELETE', revision: '2' }]);
+  await front.reload(); await expect(front.locator('.person-card').filter({ hasText: '浏览器测试成员' })).toHaveCount(0); await front.close();
   for (const label of ['科研成果', '数据资源', '页面内容']) {
     await page.getByRole('button', { name: label, exact: true }).click();
     await expect(page.locator('#rows tr').first()).toBeVisible(); await page.getByRole('button', { name: '编辑', exact: true }).first().click();

@@ -32,8 +32,8 @@ collection 为 news、members、publications、resources、pages。
 | GET /api/admin/:collection?q=&status=&page=1&limit=20 | 所有状态的管理列表；每页最多 100 条 |
 | GET /api/admin/:collection/:id | 获取可编辑内容，响应 ETag 表示当前修订号 |
 | POST /api/admin/:collection | 创建内容；返回 201 和 item |
-| PUT /api/admin/:collection/:id | 更新完整内容，必须带 If-Match，例如 `"1"` |
-| DELETE /api/admin/:collection/:id | 删除，必须带当前 If-Match |
+| PUT /api/admin/:collection/:id | 更新完整内容，必须带 X-IMED-Revision，例如 `1` |
+| DELETE /api/admin/:collection/:id | 删除，必须带当前 X-IMED-Revision |
 | POST /api/admin/media | 上传图片原始二进制字节；X-File-Name 为 URL 编码文件名；最多 4 MB |
 | GET /api/admin/export | 下载完整内容 JSON，包含图片元信息，不包含图片字节 |
 
@@ -57,6 +57,8 @@ collection 为 news、members、publications、resources、pages。
 
 每项内容维护 revision。更新／删除请求必须匹配该修订号；数据库写入还检查整个内容状态的存储版本。即使不同管理员同时编辑不同项目，也可能收到需要刷新重试的冲突提示，不会静默覆盖。
 
+管理界面通过 X-IMED-Revision 传递版本号，避免 CDN 消费标准 HTTP 条件请求头。API 仍兼容 If-Match（例如 `"1"`）；同时提供时，以 X-IMED-Revision 为准。提交正文中的 revision 不用于授权更新或删除。
+
 - 400：字段、日期或链接不合法
 - 401：未登录、过期或登录凭据不正确
 - 403：权限不足或跨站来源不匹配
@@ -64,7 +66,7 @@ collection 为 news、members、publications、resources、pages。
 - 409：编辑或存储版本冲突
 - 413：请求／文件过大
 - 415：内容类型不支持
-- 428：修改时缺少 If-Match
+- 428：修改时缺少版本请求头
 - 429：本地登录尝试过多
 - 503：登录服务未配置或暂时不可用
 

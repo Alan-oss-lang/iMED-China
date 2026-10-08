@@ -115,7 +115,7 @@
         const title = remove.closest('tr').querySelector('strong').textContent;
         if (!confirm(`确定删除“${title}”？前台会同步移除。删除前可下载内容备份。`)) return;
         remove.disabled = true;
-        await api('admin/' + section + '/' + remove.dataset.delete, { method: 'DELETE', headers: { 'If-Match': '"' + remove.dataset.revision + '"' } });
+        await api('admin/' + section + '/' + remove.dataset.delete, { method: 'DELETE', headers: { 'X-IMED-Revision': remove.dataset.revision } });
         notice('内容已删除'); await list();
       }
     } catch (error) { notice(error.message, true); } finally { if (edit) edit.disabled = false; if (remove) remove.disabled = false; }
@@ -158,7 +158,7 @@
     if (current?.status === 'published' && input.status === 'draft' && !confirm('保存为草稿后，这项内容会从前台撤下。确定继续？')) return;
     saving = true; $('#save').disabled = true; $('#editor-error').hidden = true;
     try {
-      await api('admin/' + currentCollection + (current ? '/' + current.id : ''), { method: current ? 'PUT' : 'POST', headers: current ? { 'If-Match': '"' + current.revision + '"' } : {}, body: JSON.stringify(input) });
+      await api('admin/' + currentCollection + (current ? '/' + current.id : ''), { method: current ? 'PUT' : 'POST', headers: current ? { 'X-IMED-Revision': String(current.revision) } : {}, body: JSON.stringify(input) });
       dirty = false; $('#editor-dialog').close(); notice(input.status === 'published' ? '已保存并发布，前台已同步更新' : '草稿已保存，前台不显示'); await list();
     } catch (error) { showEditorError(error.message); } finally { saving = false; $('#save').disabled = false; }
   });

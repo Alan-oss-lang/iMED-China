@@ -131,6 +131,24 @@ test('成员、论文、资源和自定义页面都能保存并出现在对应�
   assert.equal((await f.request('/api/admin/pages/index', 'PUT', { ...home, status: 'draft' }, { headers: { 'If-Match': '"1"' } })).status, 400);
 });
 
+test('使用独立版本请求头保存及删除，缺失或旧版本仍拒绝覆盖', async t => {
+  const f = await fixture(t); await f.login();
+  const result = await f.request('/api/admin/members', 'POST', { title: '线上保存回归成员', category: '在读学生', status: 'draft' });
+  assert.equal(result.status, 201);
+  const item = (await result.json()).item, path = '/api/admin/members/' + item.id;
+  assert.equal((await f.request(path, 'PUT', { ...item, status: 'published' })).status, 428);
+  const save = await f.request(path, 'PUT', { ...item, status: 'published' }, { headers: { 'X-IMED-Revision': '1' } });
+  assert.equal(save.status, 200); assert.equal((await save.json()).item.revision, 2);
+  assert.ok((await (await f.request('/team')).text()).includes(item.title));
+  for (const revision of ['1', '*', 'undefined', '2,1']) {
+    assert.equal((await f.request(path, 'PUT', item, { headers: { 'X-IMED-Revision': revision } })).status, 409);
+    assert.equal((await f.request(path, 'DELETE', undefined, { headers: { 'X-IMED-Revision': revision } })).status, 409);
+  }
+  assert.equal((await f.request(path, 'DELETE')).status, 428);
+  assert.equal((await f.request(path, 'DELETE', undefined, { headers: { 'X-IMED-Revision': '2' } })).status, 200);
+  assert.ok(!(await (await f.request('/team')).text()).includes(item.title));
+});
+
 test('HTML、危险链接、日期和提交大小在服务端校验', async t => {
   const f = await fixture(t); await f.login();
   const dangerous = '<p onclick="alert(1)">保留文字</p><script>alert(1)</script><img src="x" onerror="alert(1)"><a href="javascript:alert(1)">链接</a><iframe src="https://evil.example"></iframe><svg><script>alert(1)</script></svg>';

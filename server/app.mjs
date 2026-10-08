@@ -43,7 +43,9 @@ function imageType(bytes) {
 }
 const cookie = (token, url, clear = false) => `imed_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${clear ? '0' : '28800'}${url.protocol === 'https:' ? '; Secure' : ''}`;
 function checkRevision(request, previous) {
-  const match = request.headers.get('if-match');
+  // A CDN may consume HTTP conditional headers before invoking the function.
+  const revision = request.headers.get('x-imed-revision');
+  const match = revision === null ? request.headers.get('if-match') : `"${revision}"`;
   if (!match) throw new HttpError(428, '请先读取最新内容再进行修改');
   if (match !== `"${previous.revision}"`) throw new HttpError(409, '该内容已被修改，请重新加载后再保存');
 }
