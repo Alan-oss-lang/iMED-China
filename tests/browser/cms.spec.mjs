@@ -125,6 +125,11 @@ test('Identity 的账号登录和邀请激活使用正确的 GoTrue 请求格式
 test('成员详情显示照片、中英文介绍和联系入口，并适配手机', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/team');
+  await expect(page.locator('.person-card').filter({ hasText: '李宏硕' }).locator('.person-info small')).toHaveText('Hongshuo Li');
+  await expect(page.locator('.person-card').filter({ hasText: '张明恩' }).locator('.person-info small')).toHaveText('Mingen Zhang');
+  await expect(page.locator('.person-card').filter({ hasText: '周诗佳' }).locator('.person-info small')).toHaveText('Shijia Zhou');
+  await expect(page.locator('.person-card').filter({ hasText: '吴东涵' }).locator('.person-info small')).toHaveText('Donghan Wu');
+  await expect(page.locator('.person-info small').filter({ hasText: /^iMED CHINA$/i })).toHaveCount(0);
   await page.locator('.person-card').filter({ hasText: '赵一天' }).getByRole('link', { name: '个人介绍' }).click();
   await expect(page.locator('main h1')).toHaveText('赵一天');
   await expect(page.locator('.profile-role')).toContainText('团队负责人');

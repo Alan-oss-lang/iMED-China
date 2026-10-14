@@ -2,6 +2,7 @@
 import { load } from 'cheerio';
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import memberNameCorrections from '../content/member-name-corrections.json' with { type: 'json' };
 import { resolve } from 'node:path';
 import { cleanHtml, plainText, collections } from '../server/content.mjs';
 
@@ -22,7 +23,10 @@ for (const el of $news('.list-rows .news-row').toArray()) {
 const $members = await read('team.html');
 $members('.person-card').each((i, el) => {
   const card = $members(el);
-  add('members', { id: `member-${i + 1}`, title: card.find('h3').text().trim(), englishName: card.find('.person-info small').text().trim(), role: card.find('.person-info p').text().trim(), category: card.attr('data-category'), image: card.find('img').attr('src') || '', link: card.find('.person-info a').attr('href') || '', order: i });
+  const id = `member-${i + 1}`, title = card.find('h3').text().trim(), originalName = card.find('.person-info small').text().trim();
+  const correction = memberNameCorrections.members.find(item => item.id === id && item.title === title);
+  const englishName = correction && originalName === correction.previousEnglishName ? correction.englishName : originalName.replace(/\s+/g, ' ');
+  add('members', { id, title, englishName, role: card.find('.person-info p').text().trim(), category: card.attr('data-category'), image: card.find('img').attr('src') || '', link: card.find('.person-info a').attr('href') || '', order: i });
 });
 const $pubs = await read('publications.html');
 $pubs('.publication-item').each((i, el) => {

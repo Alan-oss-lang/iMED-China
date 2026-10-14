@@ -6,10 +6,87 @@ import { join } from 'node:path';
 import { load } from 'cheerio';
 import seed from '../content/seed.json' with { type: 'json' };
 import additions from '../content/import-2026-10.json' with { type: 'json' };
+import memberNames from '../content/member-name-corrections.json' with { type: 'json' };
 import { applyContentImports } from '../server/imports.mjs';
 import { BlobStorage, createLocalStorage } from '../server/storage.mjs';
 import { validateRecord } from '../server/content.mjs';
 import { renderPage, searchRecords } from '../server/render.mjs';
+
+function oldMemberState() {
+  const state = structuredClone(seed);
+  state.appliedContentImports = [additions.id];
+  for (const item of memberNames.members) state.collections.members[item.id].englishName = item.previousEnglishName;
+  return state;
+}
+
+test('成员姓名修正仅更新对应旧错误字段，保留自定义姓名、新成员、草稿和删除', () => {
+  const old = oldMemberState();
+  old.collections.members['member-16'].englishName = 'Hong-Shuo Li';
+  old.collections.members['member-17'].title = '改名的成员';
+  delete old.collections.members['member-18'];
+  old.collections.members['member-20'].status = 'draft';
+  old.collections.members['member-24'].revision = 8;
+  old.collections.members['member-24'].role = '后台已更新的介绍';
+  old.collections.members['member-24'].image = '/api/media/new-avatar';
+  old.collections.members['new-member'] = { ...seed.collections.members['member-16'], id: 'new-member', title: '王嘉浩', englishName: 'Jiahao Wang' };
+  const before = structuredClone(old), { state, changed } = applyContentImports(old);
+  assert.equal(changed, true); assert.deepEqual(old, before);
+  assert.deepEqual(state.collections.members['member-16'], before.collections.members['member-16']);
+  assert.deepEqual(state.collections.members['member-17'], before.collections.members['member-17']);
+  assert.equal(state.collections.members['member-18'], undefined);
+  assert.deepEqual(state.collections.members['new-member'], before.collections.members['new-member']);
+  assert.equal(state.collections.members['member-20'].status, 'draft');
+  assert.equal(state.collections.members['member-20'].englishName, 'Donghan Wu');
+  const updated = state.collections.members['member-24'];
+  assert.equal(updated.englishName, 'Zhuoting Xu'); assert.equal(updated.revision, 9);
+  const { englishName, revision, updatedAt, ...unchanged } = updated;
+  const { englishName: previousName, revision: previousRevision, updatedAt: previousTime, ...previous } = before.collections.members['member-24'];
+  assert.deepEqual(unchanged, previous); assert.ok(updatedAt);
+  assert.equal(state.history.at(-1).collection, 'members');
+  updated.englishName = 'Personal Signature';
+  delete state.collections.members['member-19'];
+  assert.strictEqual(applyContentImports(state).state, state);
+});
+
+test('已有 Blobs 成员资料遇到并发编辑时保留新署名，成功后不重复修正', async () => {
+  let value = oldMemberState(), version = 1, collide = true;
+  const store = new BlobStorage({ media: {}, content: {
+    async getWithMetadata() { return { data: structuredClone(value), etag: String(version) }; },
+    async setJSON(key, next, options) {
+      assert.equal(options.onlyIfMatch, String(version));
+      if (collide) { collide = false; value.collections.members['member-16'].englishName = 'Hong-Shuo Li'; value.collections.members['member-16'].revision++; version++; return { modified: false }; }
+      value = structuredClone(next); version++; return { modified: true, etag: String(version) };
+    },
+  } });
+  const first = await store.read();
+  assert.equal(first.state.collections.members['member-16'].englishName, 'Hong-Shuo Li');
+  assert.equal(first.state.collections.members['member-20'].englishName, 'Donghan Wu');
+  assert.equal(first.state.collections.members['member-20'].revision, 2);
+  const next = await store.read(); assert.equal(next.etag, first.etag);
+});
+
+test('SQLite 已有姓名修正会持久化，前台卡片、成员详情和英文检索使用正确姓名', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'imed-names-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const file = join(directory, 'db.sqlite'); let store = await createLocalStorage(file);
+  const first = await store.read(); await store.write(oldMemberState(), first.etag);
+  const corrected = await store.read();
+  for (const correction of memberNames.members) assert.equal(corrected.state.collections.members[correction.id].englishName, correction.englishName);
+  const team = load(renderPage(new URL('https://example.test/team.html'), corrected.state).html);
+  for (const member of Object.values(corrected.state.collections.members)) {
+    const card = team('.person-card').filter((_, node) => team(node).find('h3').text() === member.title).first();
+    assert.equal(card.find('.person-info small').text(), member.englishName, member.title);
+    assert.ok(!/iMED CHINA/i.test(member.englishName));
+  }
+  const profile = load(renderPage(new URL('https://example.test/view-15329.html'), corrected.state).html);
+  assert.equal(profile('.profile-english-name').text(), 'Lei Mou');
+  assert.ok(searchRecords(corrected.state, 'Hongshuo Li').items.some(item => item.title === '李宏硕'));
+  corrected.state.collections.members['member-20'].englishName = 'Custom English Signature';
+  await store.write(corrected.state, corrected.etag); store.close();
+  store = await createLocalStorage(file);
+  try { assert.equal((await store.read()).state.collections.members['member-20'].englishName, 'Custom English Signature'); }
+  finally { store.close(); }
+});
 
 test('补充导入保留旧内容、识别已有文章，编辑和删除后不再重复添加', () => {
   const old = structuredClone(seed);
