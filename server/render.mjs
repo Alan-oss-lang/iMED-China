@@ -1,8 +1,8 @@
 import templates from '../content/templates.json' with { type: 'json' };
-import { escape as e, visible, plainText } from './content.mjs';
+import { escape as e, visible, plainText, categoryLabel } from './content.mjs';
 import { linkedMember, renderProfile } from './profile.mjs';
 
-export const newsRow = (r, home = false) => `<a class="news-row" data-item${home ? ' data-home-news' : ''} data-category="${e(r.category)}" data-year="${e(r.date.slice(0, 4))}" href="${e(r.url)}"><span class="news-date"><strong>${e(r.date.slice(8))}</strong><small>${e(r.date.slice(0, 7).replace('-', '.'))}</small></span><span><span class="tag">${e(r.category)}</span><h3>${e(r.title)}</h3></span><span class="arrow">→</span></a>`;
+export const newsRow = (r, home = false) => `<a class="news-row" data-item${home ? ' data-home-news' : ''} data-category="${e(r.category)}" data-year="${e(r.date.slice(0, 4))}" href="${e(r.url)}"><span class="news-date"><strong>${e(r.date.slice(8))}</strong><small>${e(r.date.slice(0, 7).replace('-', '.'))}</small></span><span><span class="tag">${e(categoryLabel(r.category))}</span><h3>${e(r.title)}</h3></span><span class="arrow">→</span></a>`;
 const memberCard = r => `<article class="person-card" data-item data-category="${e(r.category)}"><div class="person-photo">${r.image ? `<img src="${e(r.image)}" alt="${e(r.title)}" loading="lazy">` : `<div class="person-placeholder">${e(r.title.slice(0, 1))}</div>`}</div><div class="person-info"><small>${e(r.englishName)}</small><h3>${e(r.title)}</h3><p>${e(r.role)}</p>${r.link ? `<a href="${e(r.link)}">个人介绍 →</a>` : ''}</div></article>`;
 const publicationCard = r => `<article class="publication-item" data-item data-year="${e(r.year)}"><div class="publication-journal">${e(r.journal)}<small>${e(r.year)}</small></div><div><h2>${e(r.title)}</h2><p>${e(r.description)}</p></div>${r.link ? `<a class="text-link" href="${e(r.link)}">查看详情 →</a>` : ''}</article>`;
 const resourceCard = r => `<article class="dataset-card" id="${e(r.anchor)}"><div class="dataset-top"><h2>${e(r.title)}</h2><span class="pill">${e(r.availability)}</span></div><h3>${e(r.subtitle)}</h3><p>${e(r.description)}</p>${r.link ? `<a class="text-link" href="${e(r.link)}">数据说明与使用方式 →</a>` : ''}</article>`;
@@ -23,13 +23,13 @@ function homeBody(html, state) {
   const feature = news.find(n => n.category === '团队活动') || news[0];
   const image = feature?.bodyHtml.match(/<img\b[^>]*src="([^"]+)"/)?.[1];
   const slots = {
-    news: `<div class="news-tabs"><button data-home-category="全部" aria-pressed="true">全部</button><button data-home-category="论文发表" aria-pressed="false">论文发表</button><button data-home-category="学术活动" aria-pressed="false">学术活动</button><a href="lectures.html">讲座海报 ↗</a></div>${news.slice(0, 30).map(n => newsRow(n, true)).join('') || '<p>暂无已发布动态。</p>'}`,
-    feature: feature ? `<a class="feature-news" href="${e(feature.url)}">${image ? `<div class="feature-photo"><img src="${e(image)}" alt="${e(feature.title)}" loading="lazy"><span class="image-label">${e(feature.category)}</span></div>` : ''}<div class="meta"><span>${e(feature.date)}</span><span>${e(feature.category)}</span></div><h3>${e(feature.title)}</h3><p>${e(feature.summary)}</p></a>` : '<p>暂无已发布动态。</p>',
+    news: `<div class="news-tabs"><button data-home-category="全部" aria-pressed="true">全部</button><button data-home-category="论文发表" aria-pressed="false">论文发表</button><button data-home-category="学术活动" aria-pressed="false">学术活动</button><a href="lectures.html">iMED 分享会 ↗</a></div>${news.slice(0, 30).map(n => newsRow(n, true)).join('') || '<p>暂无已发布动态。</p>'}`,
+    feature: feature ? `<a class="feature-news" href="${e(feature.url)}">${image ? `<div class="feature-photo"><img src="${e(image)}" alt="${e(feature.title)}" loading="lazy"><span class="image-label">${e(categoryLabel(feature.category))}</span></div>` : ''}<div class="meta"><span>${e(feature.date)}</span><span>${e(categoryLabel(feature.category))}</span></div><h3>${e(feature.title)}</h3><p>${e(feature.summary)}</p></a>` : '<p>暂无已发布动态。</p>',
     publications: pubs.slice(0, 3).map(r => `<a class="pub-card" href="${e(r.link || 'publications.html')}"><span class="journal">${e(r.journal)}</span><h3>${e(r.title)}</h3><div class="meta"><span>${e(r.year)}</span></div></a>`).join(''),
     resources: resources.slice(0, 4).map(r => `<a class="resource-tile" href="${e(r.link || 'datasets.html#' + r.anchor)}"><span><strong>${e(r.title)}</strong><small>${e(r.subtitle)}</small></span><span class="arrow">→</span></a>`).join(''),
   };
   const posters = news.filter(r => r.category === '讲座海报');
-  const preview = posters.length ? `<section class="section lecture-preview"><div class="container"><div class="section-heading"><div><div class="eyebrow">iMED LECTURE SERIES</div><h2 class="section-title">讲座海报</h2><p class="section-description">从医学影像到人工智能，与同行分享研究与思考。</p></div><a class="text-link" href="lectures.html">浏览全部海报 <span class="arrow">→</span></a></div><div class="poster-grid">${posters.slice(0, 3).map(posterCard).join('')}</div></div></section>` : '';
+  const preview = posters.length ? `<section class="section lecture-preview"><div class="container"><div class="section-heading"><div><div class="eyebrow">iMED LECTURE SERIES</div><h2 class="section-title">iMED 分享会</h2><p class="section-description">从医学影像到人工智能，与同行分享研究与思考。</p></div><a class="text-link" href="lectures.html">浏览全部海报 <span class="arrow">→</span></a></div><div class="poster-grid">${posters.slice(0, 3).map(posterCard).join('')}</div></div></section>` : '';
   return html.replace(/<div data-imed-slot="(news|feature|publications|resources)"><\/div>/g, (_, slot) => slots[slot]) + preview;
 }
 export function renderPage(url, state) {
@@ -43,14 +43,14 @@ export function renderPage(url, state) {
   const article = slug === 'article.html' && id ? state.collections.news[id] : Object.values(state.collections.news).find(n => n.url === slug);
   if (article) {
     if (article.status !== 'published') return missing();
-    const main = banner(article.category === '讲座海报' ? '讲座分享' : '内容详情', '科研进展、学术交流与开放资源') + `<section class="content-section"><div class="container article-layout"><article><div class="eyebrow">${e(article.category)}</div><h1 class="article-title">${e(article.title)}</h1><div class="article-meta meta"><time datetime="${e(article.date)}">发布于 ${e(article.date)}</time><span>iMED 中国</span></div>${posterFigure(article)}<div class="article-body">${article.bodyHtml}</div>${article.sourceUrl ? `<div class="article-source">来源：<a href="${e(article.sourceUrl)}" target="_blank" rel="noopener noreferrer">原始资料 ↗</a></div>` : ''}</article><aside class="article-aside"><h3>继续探索</h3><a href="news.html">新闻动态 →</a><a href="lectures.html">讲座海报 →</a><a href="publications.html">科研成果 →</a><a href="team.html">团队成员 →</a></aside></div></section>`;
+    const main = banner(article.category === '讲座海报' ? 'iMED 分享会' : '内容详情', '科研进展、学术交流与开放资源') + `<section class="content-section"><div class="container article-layout"><article><div class="eyebrow">${e(categoryLabel(article.category))}</div><h1 class="article-title">${e(article.title)}</h1><div class="article-meta meta"><time datetime="${e(article.date)}">发布于 ${e(article.date)}</time><span>iMED 中国</span></div>${posterFigure(article)}<div class="article-body">${article.bodyHtml}</div>${article.sourceUrl ? `<div class="article-source">来源：<a href="${e(article.sourceUrl)}" target="_blank" rel="noopener noreferrer">原始资料 ↗</a></div>` : ''}</article><aside class="article-aside"><h3>继续探索</h3><a href="news.html">新闻动态 →</a><a href="lectures.html">iMED 分享会 →</a><a href="publications.html">科研成果 →</a><a href="team.html">团队成员 →</a></aside></div></section>`;
     return { status: 200, html: frame(main, article.title, article.summary, 'zh-CN', 'news.html') };
   }
   if (slug === 'article.html' && !id) return { status: 302, location: '/news.html' };
   if (slug === 'lectures.html') {
     const posters = visible(state, 'news').filter(r => r.category === '讲座海报');
-    const main = banner('讲座海报', '汇集 iMED 中国学术分享会海报，探索医学影像与人工智能的前沿。') + updateYears(`<section class="content-section lecture-archive"><div class="container" data-collection data-page-size="12" data-unit="张海报"><div class="filters"><select data-year aria-label="选择年份"></select><input class="list-search" data-list-search type="search" aria-label="搜索讲座海报" placeholder="搜索主题、讲者或讲座期数"></div><div class="list-info"><span data-count>${posters.length} 张海报</span><a href="events.html">学术活动报道 →</a></div><div class="poster-grid">${posters.map(posterCard).join('')}</div><p data-empty class="empty" hidden>没有符合条件的海报，请调整搜索或年份。</p><div data-pagination class="pagination"><button data-prev>上一页</button><span data-page-label></span><button data-next>下一页</button></div></div></section>`, posters.map(r => r.date.slice(0, 4)));
-    return { status: 200, html: frame(main, '讲座海报', 'iMED 中国学术讲座与分享会海报', 'zh-CN', 'news.html') };
+    const main = banner('iMED 分享会', '汇集 iMED 中国学术分享会海报，探索医学影像与人工智能的前沿。') + updateYears(`<section class="content-section lecture-archive"><div class="container" data-collection data-page-size="12" data-unit="张海报"><div class="filters"><select data-year aria-label="选择年份"></select><input class="list-search" data-list-search type="search" aria-label="搜索 iMED 分享会" placeholder="搜索主题、讲者或讲座期数"></div><div class="list-info"><span data-count>${posters.length} 张海报</span><a href="events.html">学术活动报道 →</a></div><div class="poster-grid">${posters.map(posterCard).join('')}</div><p data-empty class="empty" hidden>没有符合条件的海报，请调整搜索或年份。</p><div data-pagination class="pagination"><button data-prev>上一页</button><span data-page-label></span><button data-next>下一页</button></div></div></section>`, posters.map(r => r.date.slice(0, 4)));
+    return { status: 200, html: frame(main, 'iMED 分享会', 'iMED 中国学术讲座与分享会海报', 'zh-CN', 'news.html') };
   }
   if (templates.lists[slug]) {
     let main = templates.lists[slug], rows, title;
@@ -84,7 +84,7 @@ function missing() {
 }
 export function searchRecords(state, query) {
   const records = [
-    ...visible(state, 'news').map(r => ({ title: r.title, category: r.category, date: r.date, url: r.url, text: r.summary + ' ' + plainText(r.bodyHtml) })),
+    ...visible(state, 'news').map(r => ({ title: r.title, category: categoryLabel(r.category), date: r.date, url: r.url, text: r.summary + ' ' + plainText(r.bodyHtml) })),
     ...visible(state, 'members').map(r => ({ title: r.title, category: '团队成员', url: 'team.html', text: [r.englishName, r.role, r.category].join(' ') })),
     ...visible(state, 'publications').map(r => ({ title: r.title, category: '科研成果', url: r.link || 'publications.html', text: r.journal + ' ' + r.year + ' ' + r.description })),
     ...visible(state, 'resources').map(r => ({ title: r.title, category: '数据资源', url: 'datasets.html#' + r.anchor, text: r.subtitle + ' ' + r.description })),

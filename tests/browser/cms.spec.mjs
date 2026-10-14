@@ -171,6 +171,7 @@ test('海报墙支持检索、分页、大图，后台可上传、发布、撤�
   await page.getByRole('button', { name: '新增内容', exact: true }).click();
   await page.locator('#field-title').fill('浏览器验证讲座海报');
   await page.locator('#field-category').selectOption('讲座海报');
+  await expect(page.locator('#field-category option:checked')).toHaveText('iMED 分享会');
   await expect(page.locator('#upload-poster')).toBeVisible();
   await page.locator('#upload-poster').click();
   await page.locator('#image-file').setInputFiles('assets/media/lectures/lecture-63-thumb.webp');
@@ -202,15 +203,39 @@ test('海报墙支持检索、分页、大图，后台可上传、发布、撤�
 test('Logo 与放大后的导航、首页和海报页面在桌面及手机无横向溢出', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const errors = []; page.on('pageerror', error => errors.push(error.message));
-  for (const width of [1440, 1024, 768, 390, 320]) {
+  for (const width of [1920, 1440, 1280, 1024, 768, 720, 390, 360, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const route of ['/', '/news.html', '/lectures.html', '/view-34080.html']) {
+    for (const route of ['/', '/news.html', '/lectures.html', '/view-34080.html', '/team.html', '/research.html', '/publications.html', '/datasets.html']) {
       await page.goto(route);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ' at ' + width).toBe(true);
       await expect.poll(() => page.locator('.brand-logo').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+      const filterHeights = await page.locator('.filters button,.filters select,.filters .list-search').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
+      if (filterHeights.length) expect(Math.max(...filterHeights) - Math.min(...filterHeights), 'filter alignment at ' + route + ' / ' + width).toBeLessThan(1);
+      if (route === '/') {
+        const quickLinks = await page.locator('.quick-item').evaluateAll(items => items.map(item => {
+          const subtitle = item.querySelector('small'), title = item.querySelector('strong');
+          const range = document.createRange(); range.selectNodeContents(subtitle);
+          return { itemTop: item.getBoundingClientRect().top, titleTop: title.getBoundingClientRect().top,
+            subtitleTop: subtitle.getBoundingClientRect().top, lines: range.getClientRects().length,
+            fits: subtitle.scrollWidth <= subtitle.clientWidth + 1 };
+        }));
+        for (const item of quickLinks) { expect(item.lines, 'quick link at ' + width).toBe(1); expect(item.fits, 'quick link width at ' + width).toBe(true); }
+        for (const item of quickLinks) for (const peer of quickLinks.filter(peer => Math.abs(peer.itemTop - item.itemTop) < 1)) {
+          expect(Math.abs(item.titleTop - peer.titleTop)).toBeLessThan(1);
+          expect(Math.abs(item.subtitleTop - peer.subtitleTop)).toBeLessThan(1);
+        }
+        const tabs = await page.locator('.news-tabs').evaluate(node => [...node.children].map(child => {
+          const rect = child.getBoundingClientRect(); return { top: rect.top, height: rect.height };
+        }));
+        for (const tab of tabs) { expect(Math.abs(tab.top - tabs[0].top)).toBeLessThan(1); expect(Math.abs(tab.height - tabs[0].height)).toBeLessThan(1); }
+        await expect(page.locator('.news-tabs a')).toHaveText('iMED 分享会 ↗');
+      }
+      if (route === '/news.html') await expect(page.locator('[data-filters] button[data-category="讲座海报"]')).toHaveText('iMED 分享会');
+      if (route === '/lectures.html') await expect(page.locator('main h1')).toHaveText('iMED 分享会');
       if (route === '/' && width === 1440) {
         expect(await page.locator('.nav a').first().evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(17);
         await page.screenshot({ path: 'var/screenshots/home-new-desktop.png', fullPage: true });
+        await page.screenshot({ path: 'var/screenshots/home-aligned-desktop.png', fullPage: true });
       }
       if (width === 390 && route === '/') await page.screenshot({ path: 'var/screenshots/home-new-mobile.png', fullPage: true });
       if (width === 390 && route === '/lectures.html') await page.screenshot({ path: 'var/screenshots/lectures-mobile.png' });

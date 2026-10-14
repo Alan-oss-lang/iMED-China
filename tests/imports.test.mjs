@@ -89,11 +89,13 @@ test('62 张海报和新闻稿可编辑、检索、阅读，静态图片都存�
   }
   const wall = load(renderPage(new URL('https://example.test/lectures.html'), state).html);
   assert.equal(wall('.poster-card').length, 62);
-  assert.ok(searchRecords(state, 'Trusted AI').items.some(r => r.category === '讲座海报'));
+  assert.ok(searchRecords(state, 'Trusted AI').items.some(r => r.category === 'iMED 分享会'));
   const article = load(renderPage(new URL('https://example.test/view-34080'), state).html);
   assert.equal(article('.article-body figure').length, 5);
   assert.ok(article('.article-body').text().includes('编辑： 吴东涵、许卓婷、李宏硕'));
   assert.equal(load(renderPage(new URL('https://example.test/news.html'), state).html)('[data-category="讲座海报"]').length > 0, true);
+  assert.equal(wall('main h1').text(), 'iMED 分享会');
+  assert.equal(load(renderPage(new URL('https://example.test/news.html'), state).html)('button[data-category="讲座海报"]').text(), 'iMED 分享会');
   state.collections.news['lecture-poster-63'].status = 'draft';
   assert.equal(renderPage(new URL('https://example.test/article.html?id=lecture-poster-63'), state).status, 404);
   assert.equal(load(renderPage(new URL('https://example.test/lectures.html'), state).html)('.poster-card').length, 61);

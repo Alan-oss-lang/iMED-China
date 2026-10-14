@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 
 export const collections = ['news', 'members', 'publications', 'resources', 'pages'];
 export const newsCategories = ['论文发表', '学术活动', '团队活动', '讲座海报'];
+// Keep the persisted category key so existing records, filters and imports remain compatible.
+export const categoryLabel = category => category === '讲座海报' ? 'iMED 分享会' : category;
 export const memberCategories = ['研究人员', '在读学生', '客聘专家', '毕业校友'];
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }

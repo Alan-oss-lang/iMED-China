@@ -2,6 +2,7 @@
   'use strict';
   const $ = selector => document.querySelector(selector);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const categoryLabel = value => value === '讲座海报' ? 'iMED 分享会' : value;
   const labels = { dashboard: '概览', news: '新闻与活动', members: '团队成员', publications: '科研成果', resources: '数据资源', pages: '页面内容' };
   let mode, section = 'dashboard', page = 1, total = 0, current = null, currentCollection, dirty = false, selection, uploadTarget;
   let session = null, listGeneration = 0, searchTimer, saving = false, uploading = false;
@@ -99,7 +100,7 @@
     total = data.total;
     if (page > 1 && (page - 1) * 20 >= total) { page = Math.max(1, Math.ceil(total / 20)); return list(); }
     $('#list-count').textContent = `共 ${total} 项内容`;
-    $('#rows').innerHTML = data.items.map(item => `<tr><td><strong>${esc(item.title)}</strong><small>${esc(item.date || item.category || item.journal || item.subtitle || item.slug || '')}</small></td><td><span class="status ${item.status}">${item.status === 'published' ? '已发布' : '草稿'}</span></td><td><div class="row-actions"><button class="small-button" data-edit="${esc(item.id)}">编辑</button><button class="small-button danger" data-delete="${esc(item.id)}" data-revision="${item.revision}">删除</button></div></td></tr>`).join('') || '<tr><td colspan="3">暂无符合条件的内容。</td></tr>';
+    $('#rows').innerHTML = data.items.map(item => `<tr><td><strong>${esc(item.title)}</strong><small>${esc(item.date || categoryLabel(item.category) || item.journal || item.subtitle || item.slug || '')}</small></td><td><span class="status ${item.status}">${item.status === 'published' ? '已发布' : '草稿'}</span></td><td><div class="row-actions"><button class="small-button" data-edit="${esc(item.id)}">编辑</button><button class="small-button danger" data-delete="${esc(item.id)}" data-revision="${item.revision}">删除</button></div></td></tr>`).join('') || '<tr><td colspan="3">暂无符合条件的内容。</td></tr>';
     $('#page-label').textContent = `${page} / ${Math.max(1, Math.ceil(total / 20))}`; $('#previous').disabled = page <= 1; $('#next').disabled = page * 20 >= total;
   }
   const loadList = () => list().catch(error => notice(error.message, true));
@@ -123,7 +124,7 @@
   function field(name, label, value = '', options = {}) {
     const { wide = false, type = 'text', required = false, choices, max = 500, readOnly = false, hint = '' } = options;
     const attrs = `name="${name}" id="field-${name}"${required ? ' required' : ''}${readOnly ? ' readonly' : ''} maxlength="${max}"`;
-    const input = choices ? `<select ${attrs}>${choices.map(c => `<option value="${esc(c)}"${c === value ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>` : type === 'textarea' ? `<textarea ${attrs}>${esc(value)}</textarea>` : `<input type="${type}" ${attrs} value="${esc(value)}">`;
+    const input = choices ? `<select ${attrs}>${choices.map(c => `<option value="${esc(c)}"${c === value ? ' selected' : ''}>${esc(categoryLabel(c))}</option>`).join('')}</select>` : type === 'textarea' ? `<textarea ${attrs}>${esc(value)}</textarea>` : `<input type="${type}" ${attrs} value="${esc(value)}">`;
     return `<label class="${wide ? 'wide' : ''}">${esc(label)}${input}${hint ? `<p class="form-note">${esc(hint)}</p>` : ''}</label>`;
   }
   function openEditor(item = null) {
@@ -133,7 +134,7 @@
     let fields = field('title', c === 'members' ? '姓名' : '标题', r.title, { wide: true, required: true });
     if (c === 'news') {
       fields += field('date', '发布日期', r.date || new Date().toLocaleDateString('sv-SE'), { type: 'date', required: true }) + field('category', '分类', r.category || '团队活动', { choices: ['论文发表', '学术活动', '团队活动', '讲座海报'] }) + field('summary', '摘要', r.summary, { wide: true, type: 'textarea', max: 2000 }) + field('sourceUrl', '原始资料链接（可选）', r.sourceUrl, { wide: true, max: 2000 });
-      fields += `<div class="wide" id="poster-fields"${r.category === '讲座海报' ? '' : ' hidden'}><label>讲座海报<div class="image-field"><input id="field-posterImage" name="posterImage" value="${esc(r.posterImage || '')}" maxlength="2000"><button type="button" id="upload-poster" class="small-button">上传海报</button></div><img class="thumbnail" id="poster-photo" src="${esc(r.posterImage || '')}" alt="海报预览"${r.posterImage ? '' : ' hidden'}></label>${field('lectureNumber', '讲座期数（可选）', r.lectureNumber || 0, { type: 'number', hint: '例如第 64 讲填写 64，其他讲座可填 0。' })}${field('posterThumbnail', '列表缩略图链接（可选）', r.posterThumbnail, { max: 2000, hint: '留空时使用上传的海报。正文补充说明可留空。' })}</div>`;
+      fields += `<div class="wide" id="poster-fields"${r.category === '讲座海报' ? '' : ' hidden'}><label>分享会海报<div class="image-field"><input id="field-posterImage" name="posterImage" value="${esc(r.posterImage || '')}" maxlength="2000"><button type="button" id="upload-poster" class="small-button">上传海报</button></div><img class="thumbnail" id="poster-photo" src="${esc(r.posterImage || '')}" alt="海报预览"${r.posterImage ? '' : ' hidden'}></label>${field('lectureNumber', '讲座期数（可选）', r.lectureNumber || 0, { type: 'number', hint: '例如第 64 讲填写 64，其他讲座可填 0。' })}${field('posterThumbnail', '列表缩略图链接（可选）', r.posterThumbnail, { max: 2000, hint: '留空时使用上传的海报。正文补充说明可留空。' })}</div>`;
     }
     if (c === 'members') fields += field('englishName', '英文姓名', r.englishName, { max: 200 }) + field('category', '成员分组', r.category || '研究人员', { choices: ['研究人员', '在读学生', '客聘专家', '毕业校友'] }) + field('role', '职务／介绍', r.role, { wide: true, type: 'textarea', max: 2000 }) + `<label class="wide">成员照片<div class="image-field"><input id="field-image" name="image" value="${esc(r.image || '')}" maxlength="2000"><button type="button" id="upload-photo" class="small-button">上传照片</button></div>${r.image ? `<img class="thumbnail" id="member-photo" src="${esc(r.image)}" alt="照片预览">` : '<img class="thumbnail" id="member-photo" alt="照片预览" hidden>'}</label>` + field('link', '个人介绍链接（可选）', r.link, { max: 2000 }) + field('order', '显示顺序', r.order ?? 0, { type: 'number', hint: '数字越小越靠前，可使用负数。' });
     if (c === 'publications') fields += field('journal', '期刊／会议', r.journal, { required: true, max: 300 }) + field('year', '年份', r.year || String(new Date().getFullYear()), { required: true, max: 4 }) + field('description', '作者／研究主题／发表说明', r.description, { type: 'textarea', wide: true, max: 2000 }) + field('link', '论文或详情链接（可选）', r.link, { max: 2000 }) + field('order', '显示顺序', r.order ?? 0, { type: 'number' });
