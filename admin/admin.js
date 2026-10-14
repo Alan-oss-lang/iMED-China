@@ -87,7 +87,7 @@
   document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.section)));
   async function dashboard() {
     const data = await api('admin/dashboard'); if (section !== 'dashboard') return;
-    const actions = { create: '新增', update: '修改', delete: '删除', upload: '上传图片' };
+    const actions = { create: '新增', update: '修改', delete: '删除', upload: '上传图片', import: '导入资料' };
     $('#dashboard').innerHTML = `<div class="stat-grid">${Object.entries(data.counts).map(([key, count]) => `<div class="stat-card">${esc(labels[key])}<strong>${count.total}</strong><span>${count.published} 项已发布</span></div>`).join('')}</div><div class="audit-panel"><h2>最近操作</h2>${data.history.length ? data.history.map(row => `<div class="audit-row">${esc(actions[row.action])} · ${esc(row.title)}<small>${esc(row.user)} · ${esc(new Date(row.at).toLocaleString('zh-CN'))}</small></div>`).join('') : '<p class="muted">目前还没有编辑记录。现有网站内容已导入，可以开始维护。</p>'}</div>`;
   }
   async function list() {
@@ -131,7 +131,10 @@
     const r = item || {}, c = currentCollection;
     $('#editor-title').textContent = (item ? '编辑' : '新增') + ' · ' + labels[c];
     let fields = field('title', c === 'members' ? '姓名' : '标题', r.title, { wide: true, required: true });
-    if (c === 'news') fields += field('date', '发布日期', r.date || new Date().toLocaleDateString('sv-SE'), { type: 'date', required: true }) + field('category', '分类', r.category || '团队活动', { choices: ['论文发表', '学术活动', '团队活动'] }) + field('summary', '摘要', r.summary, { wide: true, type: 'textarea', max: 2000 }) + field('sourceUrl', '原始资料链接（可选）', r.sourceUrl, { wide: true, max: 2000 });
+    if (c === 'news') {
+      fields += field('date', '发布日期', r.date || new Date().toLocaleDateString('sv-SE'), { type: 'date', required: true }) + field('category', '分类', r.category || '团队活动', { choices: ['论文发表', '学术活动', '团队活动', '讲座海报'] }) + field('summary', '摘要', r.summary, { wide: true, type: 'textarea', max: 2000 }) + field('sourceUrl', '原始资料链接（可选）', r.sourceUrl, { wide: true, max: 2000 });
+      fields += `<div class="wide" id="poster-fields"${r.category === '讲座海报' ? '' : ' hidden'}><label>讲座海报<div class="image-field"><input id="field-posterImage" name="posterImage" value="${esc(r.posterImage || '')}" maxlength="2000"><button type="button" id="upload-poster" class="small-button">上传海报</button></div><img class="thumbnail" id="poster-photo" src="${esc(r.posterImage || '')}" alt="海报预览"${r.posterImage ? '' : ' hidden'}></label>${field('lectureNumber', '讲座期数（可选）', r.lectureNumber || 0, { type: 'number', hint: '例如第 64 讲填写 64，其他讲座可填 0。' })}${field('posterThumbnail', '列表缩略图链接（可选）', r.posterThumbnail, { max: 2000, hint: '留空时使用上传的海报。正文补充说明可留空。' })}</div>`;
+    }
     if (c === 'members') fields += field('englishName', '英文姓名', r.englishName, { max: 200 }) + field('category', '成员分组', r.category || '研究人员', { choices: ['研究人员', '在读学生', '客聘专家', '毕业校友'] }) + field('role', '职务／介绍', r.role, { wide: true, type: 'textarea', max: 2000 }) + `<label class="wide">成员照片<div class="image-field"><input id="field-image" name="image" value="${esc(r.image || '')}" maxlength="2000"><button type="button" id="upload-photo" class="small-button">上传照片</button></div>${r.image ? `<img class="thumbnail" id="member-photo" src="${esc(r.image)}" alt="照片预览">` : '<img class="thumbnail" id="member-photo" alt="照片预览" hidden>'}</label>` + field('link', '个人介绍链接（可选）', r.link, { max: 2000 }) + field('order', '显示顺序', r.order ?? 0, { type: 'number', hint: '数字越小越靠前，可使用负数。' });
     if (c === 'publications') fields += field('journal', '期刊／会议', r.journal, { required: true, max: 300 }) + field('year', '年份', r.year || String(new Date().getFullYear()), { required: true, max: 4 }) + field('description', '作者／研究主题／发表说明', r.description, { type: 'textarea', wide: true, max: 2000 }) + field('link', '论文或详情链接（可选）', r.link, { max: 2000 }) + field('order', '显示顺序', r.order ?? 0, { type: 'number' });
     if (c === 'resources') fields += field('subtitle', '研究用途／副标题', r.subtitle, { wide: true }) + field('description', '资源说明', r.description, { wide: true, type: 'textarea', max: 5000 }) + field('availability', '开放状态', r.availability || '学术研究', { required: true, max: 100, hint: '例如：学术研究、下载待开放、已停止下载。' }) + field('order', '显示顺序', r.order ?? 0, { type: 'number' }) + field('link', '资源说明或下载链接（可选）', r.link, { wide: true, max: 2000 });
@@ -144,6 +147,8 @@
     $('#editor-error').hidden = true; $('#save').disabled = false; $('#editor-dialog').showModal();
     $('#field-title').focus();
     $('#upload-photo')?.addEventListener('click', () => chooseImage('photo'));
+    $('#upload-poster')?.addEventListener('click', () => chooseImage('poster'));
+    $('#field-category')?.addEventListener('change', () => { if ($('#poster-fields')) $('#poster-fields').hidden = $('#field-category').value !== '讲座海报'; });
   }
   $('#add').addEventListener('click', () => openEditor());
   const closeEditor = () => { if (saving || uploading) { showEditorError('正在保存或上传，请稍候。'); return; } if (!dirty || confirm('还有未保存的修改，确定关闭？')) { $('#editor-dialog').close(); dirty = false; } };
@@ -190,13 +195,16 @@
     try {
       const { item } = await api('admin/media', { method: 'POST', headers: { 'Content-Type': file.type, 'X-File-Name': encodeURIComponent(file.name) }, body: file });
       if (uploadTarget === 'photo') { $('#field-image').value = item.url; $('#member-photo').src = item.url; $('#member-photo').hidden = false; }
+      else if (uploadTarget === 'poster') { $('#field-posterImage').value = item.url; $('#field-posterThumbnail').value = ''; $('#poster-photo').src = item.url; $('#poster-photo').hidden = false; }
       else { restoreSelection(); document.execCommand('insertHTML', false, `<img src="${esc(item.url)}" alt="${esc(file.name)}">`); }
       dirty = true; $('#editor-error').hidden = true;
     } catch (error) { showEditorError(error.message); } finally { uploading = false; $('#save').disabled = false; }
   });
   $('#preview').addEventListener('click', () => {
     const body = $('#rich-editor').innerHTML;
-    $('#preview-frame').srcdoc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="${esc(location.origin + '/')}"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/styles.css"></head><body><main class="container article-body" style="padding:30px"><h1>${esc($('#field-title').value)}</h1>${body}</main></body></html>`;
+    const poster = $('#field-category')?.value === '讲座海报' ? $('#field-posterImage')?.value.trim() : '';
+    const safePoster = poster && /^(https:\/\/|\/[^/]|[a-zA-Z0-9][a-zA-Z0-9_./?#=&%+-]*$)/.test(poster) && !/[\x00-\x20\\]/.test(poster);
+    $('#preview-frame').srcdoc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><base href="${esc(location.origin + '/')}"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/assets/styles.css"></head><body><main class="container article-body" style="padding:30px"><h1>${esc($('#field-title').value)}</h1>${safePoster ? `<figure class="lecture-poster"><img src="${esc(poster)}" alt="${esc($('#field-title').value)}"></figure>` : ''}${body}</main></body></html>`;
     $('#preview-dialog').showModal();
   });
   $('#close-preview').addEventListener('click', () => $('#preview-dialog').close());

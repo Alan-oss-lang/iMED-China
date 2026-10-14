@@ -112,3 +112,48 @@ body:not(.admin-body) .button:active{transform:translateY(0) scale(.98)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}.retina-globe:before{display:none}body:not(.admin-body) .button:hover,.pub-card:hover,.person-card:hover,.dataset-card:hover,.publication-item:hover,.research-card:hover,.person-card:hover .person-photo img,.research-card:hover img,.feature-news:hover img{transform:none}}
 @media print{.site-header:after,.retina-globe:before{display:none}*,*:before,*:after{animation:none!important;transition:none!important}}
 @media print{.topbar,.site-header,.footer,.backtop,.article-aside,.search-dialog{display:none}.container{width:100%}.article-layout{display:block}.page-banner{background:white;color:black;padding:0}.page-banner p,.breadcrumb{display:none}.content-section{padding:20px 0}.article-body{color:black}}
+
+/* Indigo and orange follow the supplied CN Med logo. */
+:root{--navy:#252e59;--deep:#182042;--blue:#4455ac;--teal:#414fb2;--mint:#f8b474;--ink:#282e46;--muted:#667089;--line:#e0e4f0;--paper:#f3f4fa;--orange:#ff7c02}
+body{background:#f8f9fc;font-size:16px}
+::selection{background:#ffe1c1;color:var(--navy)}
+:focus-visible{outline-color:#5363c5}
+.topbar{background:#252e59;color:#e1e5f5;font-size:12px;height:35px}
+.header-row{gap:20px;height:94px}
+.brand{gap:16px}.brand-logo{width:184px;height:57px;object-fit:contain;flex-shrink:0}
+.brand-copy strong{font-size:17px}.brand-copy small{font-size:10px;letter-spacing:.7px}
+.nav{gap:21px}.nav a{font-size:17px;font-weight:600}.nav a:after{background:var(--orange)}
+.hero:before{background:radial-gradient(ellipse at 79% 38%,#5261b047,transparent 57%),linear-gradient(110deg,#252e59,#20284e 56%,#2f3868)}
+.hero .eyebrow{color:#ffc994;font-size:12px}.hero h1 em{color:#ffb86f}
+.hero-desc{color:#d4d9ed;font-size:17px}.hero-bottom{color:#c4cbe4;font-size:13px}.hero-bottom b{color:#e1e5f5;font-size:14px}
+.hero .text-link{color:#edf0fc}.hero .button{background:#4e60c0;border-color:#6575cc}
+.hero .button:hover{background:#5b6fd0}.orbit{border-color:#a9b4eb38}.orbit.o3{border-color:#c8ceed38}.orbit:before{background:#ffb86f}
+.scan-card{background:#252e59cc;border-color:#8794cb5c}.scan-card span,.visual-label{color:#c8d0ec}
+.button:hover{background:#344295}.site-header.is-scrolled{border-bottom-color:#d5daf0;box-shadow:0 5px 22px #252e5910}
+.site-header:after{background:linear-gradient(90deg,#495ab8,#ff9b3e)}
+.quicklinks{background:#fff}.quick-item strong{font-size:19px;font-weight:600}.quick-item small{font-size:12px;letter-spacing:1px}
+.news-tabs{gap:22px;flex-wrap:wrap}.news-tabs button,.news-tabs a{font-size:17px;font-weight:600;white-space:nowrap}.news-tabs a{padding:10px 0;color:var(--teal)}
+.news-row h3,.list-rows .news-row h3{font-size:18px;line-height:1.65;font-weight:500}.tag{font-size:13px;font-weight:600}.news-date small{font-size:12px}
+.filters button{font-size:16px;font-weight:500}.list-info{font-size:14px;gap:16px;flex-wrap:wrap}.list-links{display:flex;gap:20px;flex-wrap:wrap}
+.soft,.lecture-preview,.profile-content{background:#f1f3fa}.section-description{font-size:16px;color:var(--muted);margin-top:12px}
+.page-banner{background:linear-gradient(120deg,#252e59,#3a467e)}.page-banner p{font-size:16px;color:#d7dcef}.page-banner .english{color:#ffc494;font-size:12px}.breadcrumb{color:#d4daed;font-size:13px}
+.page-banner:after{border-color:#abb6e930;box-shadow:0 0 0 55px #aeb9ed09,0 0 0 110px #aeb9ed05}
+.join-banner{background:#252e59}.join-banner p{color:#d4d9ed}.footer{background:#19203e}.footer-brand{display:inline-block;padding:14px 20px;border-radius:8px;background:#fff}.footer-brand img{width:180px;height:55px;object-fit:contain}
+.footer p,.footer-links,.footer-bottom{color:#c5cce0}.article-body{font-size:17px}.article-body figure{margin:30px 0}.article-body figcaption{font-size:14px;text-align:center;color:var(--muted);margin-top:12px}
+.profile-hero{background:linear-gradient(120deg,#252e59,#323d70)}.profile-hero .eyebrow,.profile-english-name{color:#ffc494}.profile-role{color:#e0e5f6}.profile-affiliation{color:#cdd5ed}.profile-affiliation:before{background:#ffb86f}
+.poster-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.poster-card{min-width:0;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.poster-picture{display:flex;align-items:center;justify-content:center;background:#eceff7;padding:20px;border-bottom:1px solid var(--line);aspect-ratio:4/5}
+.poster-picture img{width:100%;height:100%;object-fit:contain;box-shadow:0 8px 22px #252e5920}
+.poster-copy{padding:23px}.poster-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.poster-meta time{font-size:12px;color:var(--muted)}
+.poster-copy .tag{background:#eef0fb;border-radius:4px;padding:3px 9px}.poster-copy h2{font-size:17px;line-height:1.75;margin:14px 0 20px;overflow-wrap:anywhere}.poster-copy .text-link{font-size:14px;color:var(--teal)}
+.lecture-archive .list-info{margin-bottom:24px}.lecture-archive .list-search{width:320px;max-width:100%}
+.lecture-poster{margin:28px 0 0;background:#eef0f7;padding:18px;border:1px solid var(--line);border-radius:10px}.lecture-poster img{width:100%;height:auto;object-fit:contain}.lecture-poster figcaption{font-size:14px;text-align:center;color:var(--muted);margin:14px 0 0}
+.poster-actions{display:flex;gap:14px;flex-wrap:wrap;margin:22px 0 28px}
+@media(hover:hover) and (pointer:fine){.poster-card:hover{transform:translateY(-4px);box-shadow:0 16px 32px #252e5914}.poster-card h2 a:hover{color:var(--teal)}}
+@media(max-width:1200px){.nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;height:auto;box-shadow:0 14px 20px #252e5912;padding:15px 32px;grid-template-columns:repeat(4,1fr);gap:0}.nav.is-open{display:grid}.nav a{padding:14px 0;justify-content:center}.menu-button{display:grid}.header-actions{margin-left:auto}}
+@media(max-width:900px){.poster-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-item strong{font-size:17px}.quick-item small{font-size:11px}}
+@media(max-width:720px){.header-row{height:80px;gap:12px}.brand{gap:12px}.brand-logo{width:126px;height:40px}.brand-copy{padding-left:12px}.brand-copy strong{font-size:14px;letter-spacing:0}.brand-copy small{font-size:9px}.topbar{font-size:10px;height:30px}.nav a{font-size:16px}.nav{grid-template-columns:repeat(2,1fr)}.quick-item strong{font-size:17px}.quick-item small{font-size:10px}.news-tabs{gap:16px}.news-tabs button,.news-tabs a{font-size:16px}.news-row h3,.list-rows .news-row h3{font-size:16px}.tag{font-size:12px}.filters button{font-size:15px;padding:8px 14px}.page-banner p{font-size:14px}.page-banner .english{font-size:10px}.hero-desc{font-size:15px}.poster-grid{gap:18px}.poster-copy{padding:16px}.poster-copy h2{font-size:16px}.poster-picture{padding:14px}.poster-meta time{font-size:11px}.lecture-poster{padding:10px}.article-body{font-size:16px}.lecture-archive .list-search{margin-left:0;flex:1;min-width:140px}.lecture-archive .filters select{min-width:115px}.list-info{font-size:13px}.profile-biography{font-size:15px}}
+@media(max-width:540px){.poster-grid{grid-template-columns:1fr}.poster-picture{aspect-ratio:4/5;padding:22px}.poster-copy{padding:20px}.brand-copy small{display:none}.brand-copy strong{max-width:126px;font-size:13px}.header-actions{gap:4px}.icon-button{width:32px}.hero-bottom{font-size:10px}.hero-bottom b{font-size:11px}.lecture-preview .section-heading{align-items:flex-start;gap:18px;flex-wrap:wrap}}
+@media(max-width:380px){.brand-logo{width:108px;height:35px}.brand{gap:8px}.brand-copy{padding-left:8px}.brand-copy strong{font-size:12px}.header-row{gap:6px}.topbar{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.poster-card:hover{transform:none}}

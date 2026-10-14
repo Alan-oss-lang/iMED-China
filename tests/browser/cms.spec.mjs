@@ -13,7 +13,7 @@ test('浏览器中完成新闻新增、预览、发布、前台搜索、撤下�
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await login(page);
   await page.getByRole('button', { name: '新闻与活动', exact: true }).click();
-  await expect(page.locator('#list-count')).toHaveText('共 359 项内容');
+  await expect(page.locator('#list-count')).toHaveText('共 422 项内容');
   await page.getByRole('button', { name: '新增内容', exact: true }).click();
   await page.locator('#field-title').fill('浏览器闭环验证新闻');
   await page.locator('#field-date').fill('2026-10-08');
@@ -24,7 +24,7 @@ test('浏览器中完成新闻新增、预览、发布、前台搜索、撤下�
   await page.locator('#close-preview').click();
   await page.locator('#editor-status').selectOption('published'); await page.getByRole('button', { name: '保存', exact: true }).click();
   await expect(page.locator('#editor-dialog')).not.toBeVisible();
-  await expect(page.locator('#list-count')).toHaveText('共 360 项内容');
+  await expect(page.locator('#list-count')).toHaveText('共 423 项内容');
   const front = await context.newPage(); await front.goto('/news.html');
   await expect(front.getByRole('heading', { name: '浏览器闭环验证新闻' })).toBeVisible();
   await front.getByRole('heading', { name: '浏览器闭环验证新闻' }).click();
@@ -141,4 +141,85 @@ test('成员详情显示照片、中英文介绍和联系入口，并适配手�
   await expect(page.locator('#profile-english-title')).toBeInViewport();
   await page.setViewportSize({ width: 360, height: 800 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('海报墙支持检索、分页、大图，后台可上传、发布、撤下和删除海报', async ({ page, context }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 1040 });
+  await page.goto('/lectures');
+  await expect(page.locator('[data-count]')).toHaveText('共 62 张海报');
+  await expect(page.locator('.poster-card:visible')).toHaveCount(12);
+  await expect(page.locator('[data-page-label]')).toHaveText('1 / 6');
+  await page.locator('[data-next]').click();
+  await expect(page.locator('[data-page-label]')).toHaveText('2 / 6');
+  await page.locator('[data-list-search]').fill('Trusted AI');
+  await expect(page.locator('.poster-card:visible')).toHaveCount(1);
+  await page.locator('[data-list-search]').fill('');
+  await mkdir('var/screenshots', { recursive: true });
+  await page.screenshot({ path: 'var/screenshots/lectures-desktop.png' });
+  await page.locator('[data-list-search]').fill('Trusted AI');
+  await page.locator('.poster-copy h2:visible a').click();
+  await expect(page.locator('.lecture-poster img')).toBeVisible();
+  await expect.poll(() => page.locator('.lecture-poster img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+  await expect(page.getByRole('link', { name: '下载海报', exact: false })).toHaveAttribute('download', '');
+  await page.goto('/news.html');
+  await page.locator('[data-filters] button[data-category="讲座海报"]').click();
+  await expect(page.locator('[data-count]')).toHaveText('共 62 条动态');
+  await page.screenshot({ path: 'var/screenshots/news-new-desktop.png' });
+  await login(page);
+  await page.getByRole('button', { name: '新闻与活动', exact: true }).click();
+  await page.getByRole('button', { name: '新增内容', exact: true }).click();
+  await page.locator('#field-title').fill('浏览器验证讲座海报');
+  await page.locator('#field-category').selectOption('讲座海报');
+  await expect(page.locator('#upload-poster')).toBeVisible();
+  await page.locator('#upload-poster').click();
+  await page.locator('#image-file').setInputFiles('assets/media/lectures/lecture-63-thumb.webp');
+  await expect(page.locator('#field-posterImage')).toHaveValue(/\/api\/media\//);
+  await expect(page.locator('#save')).toBeEnabled();
+  await page.locator('#field-lectureNumber').fill('64');
+  await page.getByRole('button', { name: '预览正文', exact: true }).click();
+  await expect(page.frameLocator('#preview-frame').locator('.lecture-poster img')).toBeVisible();
+  await page.locator('#close-preview').click();
+  await page.locator('#editor-status').selectOption('published');
+  await page.locator('#save').click(); await expect(page.locator('#editor-dialog')).not.toBeVisible();
+  const front = await context.newPage(); await front.goto('/lectures.html');
+  await front.locator('[data-list-search]').fill('浏览器验证讲座海报');
+  await expect(front.locator('.poster-card:visible')).toHaveCount(1);
+  await front.locator('.poster-copy h2:visible a').click();
+  await expect.poll(() => front.locator('.lecture-poster img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+  const articleUrl = front.url();
+  await page.locator('#filter-query').fill('浏览器验证讲座海报');
+  await expect(page.locator('#list-count')).toHaveText('共 1 项内容');
+  await page.getByRole('button', { name: '编辑', exact: true }).click();
+  await page.locator('#editor-status').selectOption('draft');
+  page.once('dialog', d => d.accept()); await page.locator('#save').click();
+  await expect(page.locator('#editor-dialog')).not.toBeVisible();
+  expect((await front.goto(articleUrl)).status()).toBe(404);
+  page.once('dialog', d => d.accept()); await page.getByRole('button', { name: '删除', exact: true }).click();
+  await expect(page.locator('#list-count')).toHaveText('共 0 项内容'); await front.close();
+});
+
+test('Logo 与放大后的导航、首页和海报页面在桌面及手机无横向溢出', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const route of ['/', '/news.html', '/lectures.html', '/view-34080.html']) {
+      await page.goto(route);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route + ' at ' + width).toBe(true);
+      await expect.poll(() => page.locator('.brand-logo').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+      if (route === '/' && width === 1440) {
+        expect(await page.locator('.nav a').first().evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(17);
+        await page.screenshot({ path: 'var/screenshots/home-new-desktop.png', fullPage: true });
+      }
+      if (width === 390 && route === '/') await page.screenshot({ path: 'var/screenshots/home-new-mobile.png', fullPage: true });
+      if (width === 390 && route === '/lectures.html') await page.screenshot({ path: 'var/screenshots/lectures-mobile.png' });
+    }
+    if (width < 1201) {
+      await page.getByRole('button', { name: '打开导航', exact: true }).click();
+      await expect(page.locator('#main-nav')).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
+  expect(errors).toEqual([]);
 });

@@ -2,7 +2,7 @@ import sanitizeHtml from 'sanitize-html';
 import { randomUUID } from 'node:crypto';
 
 export const collections = ['news', 'members', 'publications', 'resources', 'pages'];
-export const newsCategories = ['论文发表', '学术活动', '团队活动'];
+export const newsCategories = ['论文发表', '学术活动', '团队活动', '讲座海报'];
 export const memberCategories = ['研究人员', '在读学生', '客聘专家', '毕业校友'];
 export class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -59,9 +59,14 @@ export function validateRecord(collection, input, previous) {
     record.category = string(input, 'category', 30, true);
     if (!newsCategories.includes(record.category)) throw new HttpError(400, '新闻分类无效');
     record.summary = string(input, 'summary', 2000);
-    record.bodyHtml = cleanHtml(string(input, 'bodyHtml', 350000, true));
-    if (!plainText(record.bodyHtml) && !record.bodyHtml.includes('<img')) throw new HttpError(400, '正文不能为空');
+    record.bodyHtml = cleanHtml(string(input, 'bodyHtml', 350000, record.category !== '讲座海报'));
+    if (record.category !== '讲座海报' && !plainText(record.bodyHtml) && !record.bodyHtml.includes('<img')) throw new HttpError(400, '正文不能为空');
     record.sourceUrl = safeLink(string(input, 'sourceUrl', 2000));
+    record.posterImage = safeLink(string(input, 'posterImage', 2000), { image: true });
+    record.posterThumbnail = safeLink(string(input, 'posterThumbnail', 2000), { image: true });
+    record.lectureNumber = Number(input.lectureNumber || 0);
+    if (!Number.isSafeInteger(record.lectureNumber) || record.lectureNumber < 0 || record.lectureNumber > 100000) throw new HttpError(400, '讲座期数应为非负整数');
+    if (record.category === '讲座海报' && !record.posterImage) throw new HttpError(400, '请上传讲座海报');
     record.url = previous?.url || `article.html?id=${record.id}`;
   } else if (collection === 'members') {
     record.category = string(input, 'category', 30, true);

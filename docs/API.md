@@ -41,9 +41,11 @@ collection 为 news、members、publications、resources、pages。
 
 所有栏目通用字段：title（必填，最多 500 字符）、status（draft/published，创建时默认 draft）。
 
+讲座海报仍属于 `news`：分类为“讲座海报”时，`posterImage` 必填，正文可留空；`posterThumbnail` 可选，缺省使用完整海报。`lectureNumber` 为 0 到 100000 的整数，0 表示不指定期数。海报链接采用与成员照片相同的安全校验，图片可通过媒体上传接口获得。前台海报墙地址为 `/lectures.html`。
+
 | 栏目 | 字段 |
 | --- | --- |
-| news | date（YYYY-MM-DD）、category（论文发表/学术活动/团队活动）、summary、bodyHtml、sourceUrl |
+| news | date（YYYY-MM-DD）、category（论文发表/学术活动/团队活动/讲座海报）、summary、bodyHtml、sourceUrl、posterImage、posterThumbnail、lectureNumber |
 | members | category（研究人员/在读学生/客聘专家/毕业校友）、englishName、role、image、link、order |
 | publications | journal、year、description、link、order |
 | resources | subtitle、description、availability、link、order |

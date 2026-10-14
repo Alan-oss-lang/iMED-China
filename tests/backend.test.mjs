@@ -145,7 +145,7 @@ test('新闻草稿、发布、年份筛选、搜索、冲突检测、撤下及�
   const removed = await f.request('/view-34079.html'); assert.equal(removed.status, 404); assert.ok(!(await removed.text()).includes(legacy.title));
   const shortRemoved = await f.request('/view-34079'); assert.equal(shortRemoved.status, 404); assert.ok(!(await shortRemoved.text()).includes(legacy.title));
   const second = await createLocalStorage(join(f.directory, 'db.sqlite')); assert.equal((await second.read()).state.collections.news[legacy.id], undefined); second.close();
-  assert.equal((await (await f.request('/api/admin/export')).json()).history.length, 5);
+  assert.equal((await (await f.request('/api/admin/export')).json()).history.filter(row => row.action !== 'import').length, 5);
 });
 
 test('成员、论文、资源和自定义页面都能保存并出现在对应前台页面', async t => {

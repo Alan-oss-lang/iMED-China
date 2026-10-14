@@ -19,7 +19,7 @@
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
   document.addEventListener('click', e => { if (!e.target.closest('.site-header')) closeMenu(); });
-  window.matchMedia('(min-width:1001px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
+  window.matchMedia('(min-width:1201px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
   const topButton = $('[data-backtop]');
   const header = $('.site-header');
   let scrollFrame;
