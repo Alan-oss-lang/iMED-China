@@ -7,9 +7,10 @@ import { load } from 'cheerio';
 import seed from '../content/seed.json' with { type: 'json' };
 import additions from '../content/import-2026-10.json' with { type: 'json' };
 import memberNames from '../content/member-name-corrections.json' with { type: 'json' };
+import research from '../content/research-directions-upgrade.json' with { type: 'json' };
 import { applyContentImports } from '../server/imports.mjs';
 import { BlobStorage, createLocalStorage } from '../server/storage.mjs';
-import { validateRecord } from '../server/content.mjs';
+import { validateRecord, cleanHtml } from '../server/content.mjs';
 import { renderPage, searchRecords } from '../server/render.mjs';
 
 function oldMemberState() {
@@ -18,6 +19,98 @@ function oldMemberState() {
   for (const item of memberNames.members) state.collections.members[item.id].englishName = item.previousEnglishName;
   return state;
 }
+
+function oldResearchState() {
+  const state = structuredClone(seed);
+  state.appliedContentImports = [additions.id, memberNames.id];
+  state.collections.pages.research.bodyHtml = research.previousBodyHtml;
+  state.collections.pages.research.description = research.previousDescription;
+  return state;
+}
+
+test('研究方向仅升级原正文，保留后台改动、发布状态、删除和后续编辑', () => {
+  const original = oldResearchState(), page = original.collections.pages.research;
+  page.title = '管理员标题'; page.description = '管理员摘要'; page.status = 'draft';
+  page.bannerHtml = '<section>自定义横幅</section>'; page.revision = 7;
+  page.bodyHtml = cleanHtml(page.bodyHtml);
+  const before = structuredClone(original), upgraded = applyContentImports(original);
+  assert.deepEqual(original, before);
+  assert.equal(upgraded.state.collections.pages.research.bodyHtml, research.bodyHtml);
+  assert.equal(upgraded.state.collections.pages.research.revision, 8);
+  for (const field of ['title', 'description', 'status', 'bannerHtml', 'slug', 'createdAt']) assert.equal(upgraded.state.collections.pages.research[field], page[field]);
+  assert.equal(upgraded.state.history.at(-1).id, research.id);
+  upgraded.state.collections.pages.research.bodyHtml = '<p>升级后继续编辑</p>';
+  assert.strictEqual(applyContentImports(upgraded.state).state, upgraded.state);
+  for (const change of ['edit', 'delete', 'slug']) {
+    const edited = oldResearchState();
+    if (change === 'edit') edited.collections.pages.research.bodyHtml = '<p>管理员已编辑研究方向</p>';
+    if (change === 'delete') delete edited.collections.pages.research;
+    if (change === 'slug') edited.collections.pages.research.slug = 'custom.html';
+    const record = structuredClone(edited.collections.pages.research);
+    const next = applyContentImports(edited).state;
+    assert.deepEqual(next.collections.pages.research, record);
+    assert.ok(next.appliedContentImports.includes(research.id));
+  }
+});
+
+test('SQLite 研究方向升级持久化，八张示意图与英文说明支持渲染、搜索和后台保存', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'imed-research-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const file = join(directory, 'db.sqlite'); let store = await createLocalStorage(file);
+  let current = await store.read(); await store.write(oldResearchState(), current.etag);
+  current = await store.read();
+  const page = current.state.collections.pages.research;
+  assert.equal(page.bodyHtml, research.bodyHtml);
+  assert.equal(page.description, research.description);
+  const html = load(renderPage(new URL('https://example.test/research.html'), current.state).html);
+  assert.equal(html('.research-topic').length, 5);
+  const illustrations = html('img[src^="assets/media/research/"]');
+  assert.equal(illustrations.length, 8);
+  for (const image of illustrations.toArray()) {
+    const src = html(image).attr('src');
+    assert.equal(html(image).parent('a').attr('href'), src);
+    assert.equal(html(image).parent('a').attr('target'), '_blank');
+    assert.ok((await stat(new URL('../' + src, import.meta.url))).size > 0);
+  }
+  for (const term of ['Topology Estimation', 'Artery/Vein Classification', 'Vessel/Nerve Segmentation', 'Medical Image Enhancement', 'Angle-Closure Assessment', 'Ocular Diseases', 'Eye-Brain Joint Computing', 'AI-Assisted Materials Discovery']) {
+    assert.ok(html('main').text().includes(term), term);
+    assert.ok(searchRecords(current.state, term).items.some(item => item.url === 'research.html'), term);
+  }
+  const saved = validateRecord('pages', page, page);
+  const editorHtml = load(saved.bodyHtml);
+  assert.equal(editorHtml('.research-topic').length, 5);
+  assert.equal(editorHtml('.research-methods dt').length, 3);
+  assert.equal(editorHtml('img[src^="assets/media/research/"]').length, 8);
+  current.state.collections.pages.research.bodyHtml = saved.bodyHtml + '<p>管理员新增说明</p>';
+  await store.write(current.state, current.etag); store.close();
+  store = await createLocalStorage(file);
+  try { assert.ok((await store.read()).state.collections.pages.research.bodyHtml.endsWith('<p>管理员新增说明</p>')); }
+  finally { store.close(); }
+});
+
+test('Blobs 研究方向升级与管理员同时保存时重读，保留最新正文且不重复升级', async () => {
+  let value = oldResearchState(), version = 1, collide = true, writes = 0;
+  const store = new BlobStorage({ media: {}, content: {
+    async getWithMetadata() { return { data: structuredClone(value), etag: String(version) }; },
+    async setJSON(key, next, options) {
+      writes++; assert.equal(options.onlyIfMatch, String(version));
+      if (collide) {
+        collide = false;
+        value.collections.pages.research.bodyHtml = '<p>管理员刚刚保存的研究方向</p>';
+        value.collections.pages.research.revision++;
+        version++; return { modified: false };
+      }
+      value = structuredClone(next); version++; return { modified: true, etag: String(version) };
+    },
+  } });
+  const current = await store.read();
+  assert.equal(current.state.collections.pages.research.bodyHtml, '<p>管理员刚刚保存的研究方向</p>');
+  assert.equal(current.state.collections.pages.research.revision, 2);
+  assert.ok(current.state.appliedContentImports.includes(research.id));
+  assert.equal(writes, 2);
+  assert.equal((await store.read()).etag, current.etag);
+  assert.equal(writes, 2);
+});
 
 test('成员姓名修正仅更新对应旧错误字段，保留自定义姓名、新成员、草稿和删除', () => {
   const old = oldMemberState();

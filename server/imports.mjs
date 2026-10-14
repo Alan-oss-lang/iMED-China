@@ -1,5 +1,7 @@
 import additions from '../content/import-2026-10.json' with { type: 'json' };
 import memberNames from '../content/member-name-corrections.json' with { type: 'json' };
+import research from '../content/research-directions-upgrade.json' with { type: 'json' };
+import { cleanHtml } from './content.mjs';
 
 const normalizedTitle = title => String(title).normalize('NFKC').replace(/[\s\p{P}]/gu, '').toLowerCase();
 
@@ -8,7 +10,8 @@ const normalizedTitle = title => String(title).normalize('NFKC').replace(/[\s\p{
 export function applyContentImports(original) {
   const importNews = !original.appliedContentImports?.includes(additions.id);
   const fixNames = !original.appliedContentImports?.includes(memberNames.id);
-  if (!importNews && !fixNames) return { state: original, changed: false };
+  const updateResearch = !original.appliedContentImports?.includes(research.id);
+  if (!importNews && !fixNames && !updateResearch) return { state: original, changed: false };
   const state = structuredClone(original);
   const at = new Date().toISOString();
   state.appliedContentImports ||= [];
@@ -36,6 +39,18 @@ export function applyContentImports(original) {
     }
     state.appliedContentImports.push(memberNames.id);
     if (corrected) state.history.push({ id: memberNames.id, action: 'import', collection: 'members', title: `修正成员英文姓名（${corrected} 项）`, user: '网站内容升级', at });
+  }
+  if (updateResearch) {
+    const page = state.collections.pages[research.pageId];
+    // Compare sanitized markup to tolerate editor formatting without replacing custom content.
+    if (page?.slug === research.slug && cleanHtml(page.bodyHtml) === cleanHtml(research.previousBodyHtml)) {
+      page.bodyHtml = research.bodyHtml;
+      if (page.description === research.previousDescription) page.description = research.description;
+      page.revision = (page.revision || 0) + 1;
+      page.updatedAt = at;
+      state.history.push({ id: research.id, action: 'import', collection: 'pages', title: '完善研究方向说明与 8 张研究示意图', user: '网站内容升级', at });
+    }
+    state.appliedContentImports.push(research.id);
   }
   state.version += 1;
   state.history = state.history.slice(-200);

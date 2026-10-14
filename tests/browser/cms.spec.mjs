@@ -205,6 +205,35 @@ test('海报墙支持检索、分页、大图，后台可上传、发布、撤�
   await expect(page.locator('#list-count')).toHaveText('共 0 项内容'); await front.close();
 });
 
+test('研究方向图文在桌面与手机可读，八张新图完整加载并可打开大图', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/research.html');
+    await expect(page.locator('.research-topic')).toHaveCount(5);
+    await expect(page.locator('#ophthalmology .eyebrow')).toHaveText('Computer-Aided Screening and Diagnosis of Ocular Diseases');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'research width ' + width).toBe(true);
+    const lead = page.locator('.research-lead').first();
+    expect(await lead.evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(width > 1000 ? 18 : 16);
+    for (const img of await page.locator('img[src^="assets/media/research/"]').all()) {
+      await img.scrollIntoViewIfNeeded();
+      await expect.poll(() => img.evaluate(node => node.naturalWidth)).toBe(1280);
+      const dimensions = await img.evaluate(node => ({ width: node.clientWidth, height: node.clientHeight }));
+      expect(Math.abs(dimensions.width / dimensions.height - 1280 / 720)).toBeLessThan(.03);
+      await expect(img.locator('..')).toHaveAttribute('target', '_blank');
+      expect(await img.locator('..').getAttribute('href')).toBe(await img.getAttribute('src'));
+    }
+    await page.locator('.research-topic-nav a[href="#ai-materials"]').click();
+    await expect(page.locator('#ai-materials h2')).toBeInViewport();
+    await page.evaluate(() => scrollTo(0, 0));
+    await mkdir('var/screenshots', { recursive: true });
+    if (width === 1440) await page.screenshot({ path: 'var/screenshots/research-desktop.png', fullPage: true });
+    if (width === 390) await page.screenshot({ path: 'var/screenshots/research-mobile.png', fullPage: true });
+  }
+  expect(errors).toEqual([]);
+});
+
 test('Logo 与放大后的导航、首页和海报页面在桌面及手机无横向溢出', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const errors = []; page.on('pageerror', error => errors.push(error.message));
